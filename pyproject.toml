@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "thtax-synthetic-invoice-generator"
+version = "0.1.0"
+description = "Synthetic Vietnamese tax invoice dataset generator for THTAX testing"
+requires-python = ">=3.11"
+dependencies = ["reportlab>=4.2"]
+
+[project.scripts]
+thtax-dataset = "dataset_generator.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["generator/src"]
