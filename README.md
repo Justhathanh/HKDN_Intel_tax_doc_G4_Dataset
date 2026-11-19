@@ -14,10 +14,9 @@ Repository tạo **hóa đơn điện tử giả lập có bố cục gần vớ
 
 ## Legal and schema baseline
 
-- Thông tư 78/2021/TT-BTC là căn cứ lịch sử, **không còn là văn bản hiện hành độc lập từ 01/06/2025**; đã được thay thế bởi Thông tư 32/2025/TT-BTC.
-- Từ 01/07/2026, cần đọc cùng Nghị định 254/2026/NĐ-CP và Thông tư 91/2026/TT-BTC.
-- Quyết định 1233/QĐ-CT ngày 27/08/2026 thay thế Quyết định 1306/QĐ-CT; quy định dữ liệu nghiệp vụ và truyền nhận. Có giai đoạn chuyển tiếp message version 2.1.0/2.1.1.
-- Quyết định 1450/QĐ-TCT là chuẩn cũ, không dùng làm schema hiện hành duy nhất.
+- Verified current framework includes Nghị định 254/2026/NĐ-CP and Thông tư 91/2026/TT-BTC, both effective 01/07/2026.
+- Quyết định 1233/QĐ-CT dated 27/08/2026 replaces Quyết định 1306/QĐ-CT and defines business-data components and transmission. It specifies a transition period for message versions 2.1.0 and 2.1.1.
+- Earlier instruments (including TT78/2021 and QĐ1450/QĐ-TCT) must not be assumed to be the current technical schema. Record the exact applicable instrument, annex, version and effective date before implementing any legal field rule.
 - Mọi field/rule/schema phải có nguồn, phiên bản, ngày hiệu lực và trạng thái xác minh trong `docs/LEGAL_AND_SCHEMA_BASELINE.md`.
 
 Official/legal references:
