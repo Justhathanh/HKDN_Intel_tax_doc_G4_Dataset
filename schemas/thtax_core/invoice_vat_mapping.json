@@ -1,0 +1,31 @@
+{
+  "mapping_version": "1.0.0",
+  "target_system": "THTAX_CORE",
+  "document_type_code": "INVOICE_VAT",
+  "description": "Ánh xạ từ CanonicalInvoice (models.py) sang field_definitions của THTAX Core",
+  "header_mappings": {
+    "form_number": "invoice_form_code",
+    "series": "invoice_series",
+    "invoice_number": "invoice_number",
+    "issue_date": "invoice_date",
+    "seller.tax_code": "seller_tax_code",
+    "seller.name": "seller_name",
+    "seller.address": "seller_address",
+    "buyer.tax_code": "buyer_tax_code",
+    "buyer.name": "buyer_name",
+    "buyer.address": "buyer_address",
+    "currency": "currency_code",
+    "totals.subtotal": "subtotal_amount",
+    "totals.vat_total": "vat_amount",
+    "totals.grand_total": "total_amount"
+  },
+  "line_item_mappings": {
+    "name": "item_description",
+    "unit": "unit_name",
+    "quantity": "quantity",
+    "unit_price": "unit_price",
+    "amount": "taxable_amount",
+    "vat_rate": "vat_rate",
+    "vat_amount": "vat_amount"
+  }
+}

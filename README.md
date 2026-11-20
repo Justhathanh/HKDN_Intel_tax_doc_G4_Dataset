@@ -20,6 +20,7 @@ Repository tạo **hóa đơn điện tử giả lập có bố cục gần vớ
 - Mọi field/rule/schema phải có nguồn, phiên bản, ngày hiệu lực và trạng thái xác minh trong `docs/LEGAL_AND_SCHEMA_BASELINE.md`.
 
 Official/legal references:
+
 - [Nghị định 254/2026/NĐ-CP - Cổng văn bản Chính phủ](https://vanban.chinhphu.vn/?classid=1&docid=218689&pageid=27160&typegroupid=4)
 - [Thông tư 91/2026/TT-BTC - Cổng văn bản Chính phủ](https://vanban.chinhphu.vn/?classid=1&docid=219006&orggroupid=4&pageid=27160)
 - [Quyết định 1233/QĐ-CT - nội dung và phụ lục kỹ thuật](https://thuvienphapluat.vn/van-ban/Thue-Phi-Le-Phi/Quyet-dinh-1233-QD-CT-2026-thanh-phan-chua-du-lieu-nghiep-vu-hoa-don-chung-tu-dien-tu-722644.aspx)
@@ -55,6 +56,35 @@ python -m dataset_generator.cli --count 1 --output datasets/samples
 ```
 
 Set `DATASET_FONT_PATH` to a Vietnamese-capable TTF font if the default system font is unavailable (e.g. Arial on Windows or DejaVuSans on Linux).
+
+**Sinh bộ dữ liệu kiểm thử đầy đủ (Hóa đơn chuẩn & Trường hợp lỗi)**
+
+```bash
+# Sinh 5 hóa đơn hợp lệ + 3 hóa đơn lỗi nghiệp vụ + 3 mẫu file lỗi định dạng
+python -m dataset_generator.cli --count 5 --seed 100 --include-negative --output datasets/samples
+```
+
+**Cấu trúc mỗi thư mục chứng từ sinh ra (`datasets/samples/sample-<seed>/<document_id>/`):**
+
+- `invoice.pdf`: Bản thể hiện hóa đơn GTGT chuẩn NĐ 254/2026/NĐ-CP & TT 91/2026/TT-BTC (có text layer).
+- `invoice_scan.pdf`: Bản PDF dạng ảnh scan (không có text layer) phục vụ kiểm thử luồng OCR.
+- `images/page-001.png`: Ảnh hóa đơn gốc sắc nét (200 DPI).
+- `images/page-001_blur.jpg`: Ảnh giả lập xoay nghiêng, làm mờ và nhiễu hạt phục vụ kiểm thử tiền xử lý ảnh (ST09) và OCR.
+- `canonical.json`: Dữ liệu gốc chuẩn hóa sinh ra chứng từ.
+- `ground_truth.json`: Nhãn kiểm thử (`valid_synthetic`, `invalid_format`, `missing_required_field`, `inconsistent_totals`), giá trị hiển thị (`displayed`), giá trị chuẩn hóa (`normalized`) và danh sách lỗi kỳ vọng.
+- `manifest.json`: Thông tin phiên bản pháp lý (`ND254_2026_TT91_2026`), `seed`, `MIME type` và mã băm `SHA-256` của toàn bộ file trong bundle.
+
+### Kiểm tra nhanh trạng thái hóa đơn hợp lệ / lỗi (PowerShell)
+
+```powershell
+Get-ChildItem .\datasets\samples\sample-100\*\manifest.json | ForEach-Object { $m = Get-Content $_ -Raw \vert{} ConvertFrom-Json; [PSCustomObject]@{ Folder =$_.Directory.Name; Status = $m.validation_status; Errors = ($m.validation_errors -join " | ") } } | Format-Table -AutoSize
+```
+
+### Chạy kiểm thử tự động (Unit Tests)
+
+```bash
+python -m pytest -v
+```
 
 ## Ownership
 
