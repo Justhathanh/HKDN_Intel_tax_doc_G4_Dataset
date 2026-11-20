@@ -69,7 +69,7 @@ python -m dataset_generator.cli --count 5 --seed 100 --include-negative --output
 - `invoice.pdf`: Bản thể hiện hóa đơn GTGT chuẩn NĐ 254/2026/NĐ-CP & TT 91/2026/TT-BTC (có text layer).
 - `invoice_scan.pdf`: Bản PDF dạng ảnh scan (không có text layer) phục vụ kiểm thử luồng OCR.
 - `images/page-001.png`: Ảnh hóa đơn gốc sắc nét (200 DPI).
-- `images/page-001_blur.jpg`: Ảnh giả lập xoay nghiêng, làm mờ và nhiễu hạt phục vụ kiểm thử tiền xử lý ảnh (ST09) và OCR.
+- `images/page-001_blur.jpg`: Ảnh giả lập xoay nghiêng, làm mờ và nhiễu hạt phục vụ kiểm thử tiền xử lý ảnh và OCR.
 - `canonical.json`: Dữ liệu gốc chuẩn hóa sinh ra chứng từ.
 - `ground_truth.json`: Nhãn kiểm thử (`valid_synthetic`, `invalid_format`, `missing_required_field`, `inconsistent_totals`), giá trị hiển thị (`displayed`), giá trị chuẩn hóa (`normalized`) và danh sách lỗi kỳ vọng.
 - `manifest.json`: Thông tin phiên bản pháp lý (`ND254_2026_TT91_2026`), `seed`, `MIME type` và mã băm `SHA-256` của toàn bộ file trong bundle.
