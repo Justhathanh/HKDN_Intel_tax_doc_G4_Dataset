@@ -1,5 +1,4 @@
 ﻿import copy
-import copy
 import random
 import uuid
 from datetime import date, timedelta
@@ -9,50 +8,51 @@ from .model import CanonicalInvoice, InvoiceLine, Party
 
 SELLERS = [
     (
-        "CĂ”NG TY TNHH GIáº¢I PHĂP CĂ”NG NGHá»† MINH Há»ŒA (Dá»® LIá»†U GIáº¢ Láº¬P)",
-        "Sá»‘ 123 ÄÆ°á»ng Nguyá»…n Huá»‡, PhÆ°á»ng Báº¿n NghĂ©, Quáº­n 1, TP. Há»“ ChĂ­ Minh",
+        "CÔNG TY TNHH GIẢI PHÁP CÔNG NGHỆ MINH HỌA (DỮ LIỆU GIẢ LẬP)",
+        "Số 123 Đường Nguyễn Huệ, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh",
         "9901234567",
-        "19039988776601 - NgĂ¢n hĂ ng TMCP Ká»¹ ThÆ°Æ¡ng Viá»‡t Nam (Techcombank)",
+        "19039988776601 - Ngân hàng TMCP Kỹ Thương Việt Nam (Techcombank)",
     ),
     (
-        "CĂ”NG TY Cá»” PHáº¦N THÆ¯Æ NG Máº I Dá»CH Vá»¤ DEMO VIá»†T",
-        "Táº§ng 8, TĂ²a nhĂ  Thá»­ Nghiá»‡m, Phá»‘ Duy TĂ¢n, Quáº­n Cáº§u Giáº¥y, HĂ  Ná»™i",
+        "CÔNG TY CỔ PHẦN THƯƠNG MẠI DỊCH VỤ DEMO VIỆT",
+        "Tầng 8, Tòa nhà Thử Nghiệm, Phố Duy Tân, Quận Cầu Giấy, Hà Nội",
         "9902345678-001",
-        "0011009988776 - NgĂ¢n hĂ ng TMCP Ngoáº¡i ThÆ°Æ¡ng Viá»‡t Nam (Vietcombank)",
+        "0011009988776 - Ngân hàng TMCP Ngoại Thương Việt Nam (Vietcombank)",
     ),
     (
-        "CĂ”NG TY TNHH PHáº¦N Má»€M MáºªU THTAX",
-        "Sá»‘ 88 ÄÆ°á»ng Báº¡ch Äáº±ng, Quáº­n Háº£i ChĂ¢u, TP. ÄĂ  Náºµng",
+        "CÔNG TY TNHH PHẦN MỀM MẪU THTAX",
+        "Số 88 Đường Bạch Đằng, Quận Hải Châu, TP. Đà Nẵng",
         "9903456789",
-        "112233445566 - NgĂ¢n hĂ ng TMCP CĂ´ng ThÆ°Æ¡ng Viá»‡t Nam (VietinBank)",
+        "112233445566 - Ngân hàng TMCP Công Thương Việt Nam (VietinBank)",
     ),
 ]
 
 BUYERS = [
     (
-        "CĂ”NG TY TNHH KHĂCH HĂ€NG DOANH NGHIá»†P MáºªU A",
-        "Sá»‘ 456 ÄÆ°á»ng VĂµ VÄƒn Táº§n, PhÆ°á»ng 5, Quáº­n 3, TP. Há»“ ChĂ­ Minh",
+        "CÔNG TY TNHH KHÁCH HÀNG DOANH NGHIỆP MẪU A",
+        "Số 456 Đường Võ Văn Tần, Phường 5, Quận 3, TP. Hồ Chí Minh",
         "9911112222",
     ),
     (
-        "CĂ”NG TY Cá»” PHáº¦N Äá»I TĂC Káº¾ TOĂN DEMO B",
-        "Sá»‘ 79 ÄÆ°á»ng Äiá»‡n BiĂªn Phá»§, Quáº­n BĂ¬nh Tháº¡nh, TP. Há»“ ChĂ­ Minh",
+        "CÔNG TY CỔ PHẦN ĐỐI TÁC KẾ TOÁN DEMO B",
+        "Số 79 Đường Điện Biên Phủ, Quận Bình Thạnh, TP. Hồ Chí Minh",
         "9922223333",
     ),
     (
-        "DOANH NGHIá»†P TÆ¯ NHĂ‚N THá»¬ NGHIá»†M C",
-        "Sá»‘ 12 ÄÆ°á»ng Xa Lá»™ HĂ  Ná»™i, TP. Thá»§ Äá»©c, TP. Há»“ ChĂ­ Minh",
+        "DOANH NGHIỆP TƯ NHÂN THỬ NGHIỆM C",
+        "Số 12 Đường Xa Lộ Hà Nội, TP. Thủ Đức, TP. Hồ Chí Minh",
         "9933334444-002",
     ),
 ]
 
 CATALOG = [
-    ("Dá»‹ch vá»¥ tÆ° váº¥n giáº£i phĂ¡p chuyá»ƒn Ä‘á»•i sá»‘ doanh nghiá»‡p", "GĂ³i", 5_000_000, 15_000_000),
-    ("Báº£n quyá»n pháº§n má»m quáº£n lĂ½ hĂ³a Ä‘Æ¡n Ä‘iá»‡n tá»­ (12 thĂ¡ng)", "NÄƒm", 2_500_000, 6_000_000),
-    ("Dá»‹ch vá»¥ lÆ°u trá»¯ vĂ  sao lÆ°u dá»¯ liá»‡u Ä‘Ă¡m mĂ¢y", "ThĂ¡ng", 1_500_000, 4_500_000),
-    ("Thiáº¿t bá»‹ mĂ¡y chá»§ lÆ°u trá»¯ chuyĂªn dá»¥ng NAS", "Bá»™", 12_000_000, 28_000_000),
-    ("Dá»‹ch vá»¥ báº£o trĂ¬ há»‡ thá»‘ng háº¡ táº§ng máº¡ng ná»™i bá»™", "Láº§n", 2_000_000, 5_000_000),
+    ("Dịch vụ tư vấn giải pháp chuyển đổi số doanh nghiệp", "Gói", 5_000_000, 15_000_000),
+    ("Bản quyền phần mềm quản lý hóa đơn điện tử (12 tháng)", "Năm", 2_500_000, 6_000_000),
+    ("Dịch vụ lưu trữ và sao lưu dữ liệu đám mây", "Tháng", 1_500_000, 4_500_000),
+    ("Thiết bị máy chủ lưu trữ chuyên dụng NAS", "Bộ", 12_000_000, 28_000_000),
+    ("Dịch vụ bảo trì hệ thống hạ tầng mạng nội bộ", "Lần", 2_000_000, 5_000_000),
 ]
+
 
 def _build_valid_invoice(seed: int) -> CanonicalInvoice:
     rng = random.Random(seed)
@@ -88,7 +88,7 @@ def _build_valid_invoice(seed: int) -> CanonicalInvoice:
             "error_reason": None,
             "seller_bank_account": seller_bank,
             "payment_method": rng.choice(["TM/CK", "CK", "TM"]),
-            "watermark": "Dá»® LIá»†U GIáº¢ Láº¬P - KHĂ”NG CĂ“ GIĂ TRá» PHĂP LĂ",
+            "watermark": "DỮ LIỆU GIẢ LẬP - KHÔNG CÓ GIÁ TRỊ PHÁP LÝ",
             "legal_profile_id": "ND254_2026_TT91_2026",
             "legal_profile_version": "2026.07.01",
         },
@@ -96,7 +96,7 @@ def _build_valid_invoice(seed: int) -> CanonicalInvoice:
 
 
 def mutate_invoice(base_invoice: CanonicalInvoice, seed: int, error_kind: str | None = None) -> CanonicalInvoice:
-    """Táº¡o báº£n sao Ä‘á»™t biáº¿n lá»—i tá»« canonical valid gá»‘c mĂ  khĂ´ng lĂ m biáº¿n Ä‘á»•i báº£n gá»‘c (G4T-82)."""
+    """Tạo bản sao đột biến lỗi từ canonical valid gốc mà không làm biến đổi bản gốc (G4T-82)."""
     inv = copy.deepcopy(base_invoice)
     rng = random.Random(seed)
     all_kinds = [
@@ -127,7 +127,6 @@ def mutate_invoice(base_invoice: CanonicalInvoice, seed: int, error_kind: str | 
         inv.lines[0].quantity = Decimal("-2")
         inv.extra["qa_label"] = "inconsistent_totals"
     elif kind == "duplicate_reference":
-        # TrĂ¹ng kĂ½ hiá»‡u vĂ  sá»‘ hĂ³a Ä‘Æ¡n vá»›i máº«u chuáº©n seed=42
         inv.series = "C26TAA"
         inv.invoice_number = "00000042"
         inv.extra["qa_label"] = "duplicate_reference"
