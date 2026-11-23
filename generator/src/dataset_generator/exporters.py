@@ -23,8 +23,11 @@ def money(v: Decimal | int) -> str:
     return f"{int(v):,}".replace(",", ".")
 
 def format_vn_date(iso_date: str) -> str:
-    dt = datetime.strptime(iso_date, "%Y-%m-%d")
-    return f"Ngày {dt.day:02d} tháng {dt.month:02d} năm {dt.year}"
+    try:
+        dt = datetime.strptime(iso_date, "%Y-%m-%d")
+        return f"Ngày {dt.day:02d} tháng {dt.month:02d} năm {dt.year}"
+    except ValueError:
+        return iso_date
 
 def number_to_vietnamese_words(n: int) -> str:
     """Chuyển số tiền nguyên sang chữ tiếng Việt chuẩn kế toán hóa đơn."""
@@ -142,7 +145,7 @@ def export_pdf(inv: CanonicalInvoice, path: Path):
     story.append(Paragraph("DỮ LIỆU GIẢ LẬP - KHÔNG CÓ GIÁ TRỊ PHÁP LÝ", wm_style))
     story.append(Spacer(1, 2 * mm))
 
-    # 2. Khối thông tin Người bán & Người mua đóng khung rõ ràng
+    # 2. Khối thông tin Người bán & Người mua (2 cột: Người bán | Người mua)
     bank_info = inv.extra.get("seller_bank_account", "")
     pay_method = inv.extra.get("payment_method", "TM/CK")
     party_data = [
@@ -181,7 +184,7 @@ def export_pdf(inv: CanonicalInvoice, path: Path):
     story.append(party_table)
     story.append(Spacer(1, 3 * mm))
 
-    # 3. Bảng chi tiết hàng hóa, dịch vụ (Đủ 9 cột chuẩn Hóa đơn GTGT)
+    # 3. Bảng chi tiết hàng hóa, dịch vụ (9 cột: STT | Tên hàng | ĐVT | SL | Đơn giá | Thành tiền chưa thuế | Thuế suất | Tiền thuế GTGT | Tổng tiền thanh toán)
     
     cell_left = ParagraphStyle("CellLeft", parent=normal, fontSize=7, leading=9.5, alignment=0)
     cell_center = ParagraphStyle("CellCenter", parent=normal, fontSize=7, leading=9.5, alignment=1)
@@ -278,7 +281,7 @@ def export_images_and_scan_pdf(pdf_path: Path, out_dir: Path, seed: int = 42):
     # 1. Ảnh nét chuẩn theo DATASET_SPEC.md
     clean_img.save(images_dir / "page-001.png", format="PNG")
 
-    # 2. Ảnh mờ/xoay nghiêng/nhiễu phục vụ test OCR & ST09 theo DATASET_SPEC.md
+    # 2. Ảnh mờ/xoay nghiêng/nhiễu
     angle = rng.uniform(-3.0, 3.0)
     degraded = clean_img.rotate(angle, resample=Image.Resampling.BICUBIC, expand=False, fillcolor=(245, 245, 245))
     degraded = degraded.filter(ImageFilter.GaussianBlur(radius=0.85))
