@@ -45,6 +45,8 @@ All artifacts for one invoice must derive from the same canonical data. PDF visu
 
 Python 3.11+.
 
+### 1. Cài đặt môi trường
+
 ```bash
 python -m venv .venv
 # Windows
@@ -57,11 +59,31 @@ python -m dataset_generator.cli --count 1 --output datasets/samples
 
 Set `DATASET_FONT_PATH` to a Vietnamese-capable TTF font if the default system font is unavailable (e.g. Arial on Windows or DejaVuSans on Linux).
 
-**Sinh bộ dữ liệu kiểm thử đầy đủ (Hóa đơn chuẩn & Trường hợp lỗi)**
+### 2. Tạo bộ dữ liệu kiểm thử & tự động xuất file nén `.zip`
+
+**Cách 1: Chế độ tương tác nhanh (Khuyên dùng)**
+Chỉ cần gõ đúng 1 lệnh sau và nhấn **Enter** 3 lần để nhận cấu hình mặc định:
 
 ```bash
-# Sinh 5 hóa đơn hợp lệ + 3 hóa đơn lỗi nghiệp vụ + 3 mẫu file lỗi định dạng
-python -m dataset_generator.cli --count 5 --seed 100 --include-negative --output datasets/samples
+python -m dataset_generator.cli
+```
+
+Hệ thống sẽ hiển thị 3 câu hỏi tùy chọn (bấm **Enter** liên tiếp để dùng mặc định):
+
+1. Số lượng hóa đơn hợp lệ muốn tạo _(mặc định: 5)_
+2. Có tạo kèm hóa đơn lỗi & file hỏng không? _(mặc định: y)_
+3. Có đóng gói thành file `.zip` luôn không? _(mặc định: y)_
+
+Kết quả xuất ra tại:
+
+- Thư mục chi tiết: `datasets/samples/sample-42/`
+- File nén sẵn sàng sử dụng: `datasets/samples/sample-42.zip`
+
+**Cách 2: Sinh bộ dữ liệu kiểm thử đầy đủ bằng tham số**
+
+```bash
+# Sinh 5 hóa đơn hợp lệ + 3 hóa đơn lỗi nghiệp vụ + 3 mẫu file lỗi định dạng + xuất file .zip
+python -m dataset_generator.cli --count 5 --seed 100 --include-negative --zip --output datasets/samples
 ```
 
 **Cấu trúc mỗi thư mục chứng từ sinh ra (`datasets/samples/sample-<seed>/<document_id>/`):**
