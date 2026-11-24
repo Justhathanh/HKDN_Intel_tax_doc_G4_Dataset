@@ -170,10 +170,13 @@ Mỗi batch có ZIP cùng tên ở cạnh thư mục batch. Không đưa dữ li
 
 The Dataset Studio now writes a well-formed internal XML representation from each canonical document. This is an integration-test format only; it is **not** a legally verified e-invoice XML schema. Manifest fields explicitly retain `xml_schema_verified: false` and `xml_schema_version: null`.
 
-Adjustment and replacement samples are generated as linked scenarios with an original VAT invoice. Adjustment scenarios carry a signed delta; replacement scenarios supersede the original and are not additive.
+Adjustment samples can use either a VAT invoice or a Sales Invoice as the original document; the selected type is preserved in the linked adjusted snapshot. Replacement samples currently retain a VAT invoice as the original. Adjustment scenarios carry a signed delta; replacement scenarios supersede the original and are not additive.
 
 Each Batch produces two archives:
 - `<batch_id>.zip`: Full Dataset, including source files, OCR derivatives, Canonical JSON, Ground Truth, manifests and reports.
 - `<batch_id>-upload.zip`: Upload Dataset, containing only original PDF/XML inputs and excluding Ground Truth, canonical labels, scan derivatives and corrupted fixtures.
 
 See [Dataset Export Contract](docs/DATASET_EXPORT_CONTRACT.md) for the artifact and scenario contract.
+
+
+Generated batches can be deleted individually from the **Kho dữ liệu** tab. Deletion removes the selected batch directory and its Full/Upload ZIP archives from local dataset storage; generated datasets are excluded from Git by `.gitignore`.
