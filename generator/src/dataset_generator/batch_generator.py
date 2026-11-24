@@ -522,7 +522,7 @@ def create_batch(
                         export_pdf(adjusted_invoice_snapshot, adjusted_pdf)
                         adjusted_snapshot_dict = adjusted_invoice_snapshot.to_dict()
                     else:
-                        adjusted_base = f"{scenario_base}_adjusted"
+                        adjusted_base = f"{scenario_base}_replacement"
                         _rename_pdf_artifacts(output_dir, adjusted_base, "document.pdf")
                         adjusted_snapshot_dict = None
 
