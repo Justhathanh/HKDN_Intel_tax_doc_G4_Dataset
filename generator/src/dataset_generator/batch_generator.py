@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import secrets
 import shutil
 import uuid
 from datetime import datetime
@@ -192,7 +193,7 @@ def _apply_company_to_extended(doc: Any, company: dict, direction: str) -> None:
         doc.issuer_address = company.get("address", "")
 
 
-def _short_document_base(document_type: str, seed: int, role: str | None = None) -> str:
+def _short_document_base(document_type: str, code: str | int, role: str | None = None) -> str:
     prefixes = {
         "vat_invoice": "tax_invoice",
         "sales_invoice": "sales_invoice",
@@ -204,9 +205,9 @@ def _short_document_base(document_type: str, seed: int, role: str | None = None)
         "pit_withholding": "pit_withholding",
     }
     prefix = prefixes.get(document_type, document_type)
-    code = seed % 900 + 100
+    formatted_code = f"{int(code):03d}"
     suffix = f"_{role}" if role else ""
-    return f"{prefix}{code}{suffix}"
+    return f"{prefix}{formatted_code}{suffix}"
 
 
 def _rename_pdf_artifacts(document_dir: Path, base_name: str, primary_pdf: str) -> None:
@@ -319,6 +320,8 @@ def create_batch(
 
         for index in range(count_per_type):
             current_seed = seed + type_index * 100_000 + index
+            # Human-friendly lookup code only; collisions across files/batches are allowed.
+            filename_code = secrets.randbelow(999) + 1
 
             if type_key == "vat_invoice":
                 invoice = create_sample_invoice(current_seed, scenario="valid")
@@ -340,7 +343,7 @@ def create_batch(
 
                 output_dir = documents_dir / invoice.document_id
                 write_bundle(invoice, output_dir)
-                short_base = _short_document_base(type_key, current_seed)
+                short_base = _short_document_base(type_key, filename_code)
                 _rename_pdf_artifacts(output_dir, short_base, "invoice.pdf")
                 add_xml_and_refresh_manifest(output_dir, f"{short_base}.xml")
 
@@ -351,6 +354,7 @@ def create_batch(
                     "validation_status": "passed",
                     "series": invoice.series,
                     "invoice_number": invoice.invoice_number,
+                    "filename_code": f"{filename_code:03d}",
                 }
 
             else:
@@ -453,6 +457,7 @@ def create_batch(
                         "related_document_id": doc.document_id,
                         "series": original.series,
                         "invoice_number": original.invoice_number,
+                        "filename_code": f"{filename_code:03d}",
                     }
 
                 errors = validate_extended_document(doc)
@@ -506,7 +511,7 @@ def create_batch(
                         "scenario_id": doc.metadata["scenario_id"],
                         "scenario_role": doc.metadata["role"],
                         "related_document_id": doc.metadata["references_document_id"],
-                    } if type_key in {"adjustment_invoice", "replacement_invoice"} else {}),
+                    } if type_key in {"adjustment_invoice", "replacement_invoice"} else {"filename_code": f"{filename_code:03d}"}),
                 }
 
                 if scenario_original_record:
@@ -578,7 +583,8 @@ def create_batch(
                 negative_dir,
                 validation_errors=errors,
             )
-            negative_base = f"tax_invoice{bad_seed % 900 + 100}_{case}"
+            negative_code = secrets.randbelow(999) + 1
+            negative_base = f"tax_invoice{negative_code:03d}_{case}"
             _rename_pdf_artifacts(negative_dir, negative_base, "invoice.pdf")
             add_xml_and_refresh_manifest(negative_dir, f"{negative_base}.xml")
             validation_records.append({
