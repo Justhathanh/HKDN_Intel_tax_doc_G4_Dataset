@@ -478,6 +478,11 @@ def create_batch(
                         _rename_pdf_artifacts(output_dir, adjusted_base, "document.pdf")
                         adjusted_snapshot_dict = None
 
+                    if adjusted_snapshot_dict is not None:
+                        (output_dir / "adjusted_state.json").write_text(
+                            json.dumps(adjusted_snapshot_dict, ensure_ascii=False, indent=2),
+                            encoding="utf-8",
+                        )
                     add_adjustment_scenario_xml(
                         batch_dir,
                         original.document_id,
