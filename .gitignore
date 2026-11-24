@@ -23,3 +23,8 @@ datasets/**/*.xml
 .vscode/
 .DS_Store
 Thumbs.db
+
+configs/companies.json
+datasets/companies/
+*.zip
+.streamlit/
