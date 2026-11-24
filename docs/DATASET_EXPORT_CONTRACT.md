@@ -17,7 +17,7 @@ The manifest records artifact path, MIME type, byte size and SHA-256. It also re
 
 ## 3. Adjustment and replacement scenarios
 
-Adjustment and replacement documents are generated with an original VAT invoice in the same Batch:
+Adjustment documents can be generated with either an original VAT invoice or an original Sales Invoice in the same Batch. The Streamlit UI exposes this choice when `adjustment_invoice` is selected. The chosen original type is preserved in the root document, adjusted snapshot and scenario XML. Replacement scenarios currently continue to use an original VAT invoice:
 - `scenario_id` groups the pair.
 - Original invoice has role `original`.
 - Related document has role `adjustment` or `replacement` and points to the original using `references_document_id`.
@@ -50,3 +50,8 @@ If two documents in the same batch have the same type and random code, the folde
 For adjustment/replacement scenarios, each document ID has its own folder. The original VAT invoice is stored in a `tax_invoiceNNN/` folder with `tax_invoiceNNN_root.pdf` and `tax_invoiceNNN_root.xml`. The related adjustment/replacement document is stored in its own type folder, such as `adjustment_invoiceNNN/`, with its role-specific PDF (for example `adjustment_invoiceNNN_adjustment.pdf` and `adjustment_invoiceNNN_adjusted.pdf`, or `replacement_invoiceNNN_replacement.pdf`) and scenario XML. Both folders share the scenario's three-digit lookup code. The batch manifest links them using `scenario_id`, `document_id` and `related_document_id`.
 
 The combined scenario XML is stored with the adjustment/replacement document and its artifact entry is recorded in that document's manifest. The Windows Explorer "Type" label can show the default associated application (for example Microsoft Edge); verify the actual file extension and inspect the XML declaration/content rather than relying on that label.
+
+
+## 6. Local dataset cleanup
+
+The **Kho dữ liệu** tab provides a per-batch delete action. The user must explicitly confirm before deletion. The operation removes only the selected batch directory and its adjacent Full Dataset and Upload Dataset ZIP files, and validates that the target is inside `datasets/companies/`. It does not delete source code, other batches or GitHub history. Generated company datasets and ZIP archives are ignored by `.gitignore`.
