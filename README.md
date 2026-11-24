@@ -164,3 +164,16 @@ datasets/
 Mỗi batch có ZIP cùng tên ở cạnh thư mục batch. Không đưa dữ liệu Pilot thật vào thư mục synthetic này. Dữ liệu thật cần một kho riêng, phân quyền theo client/engagement, giữ nguyên file nguồn và có quy trình phê duyệt xử lý.
 
 **Giới hạn hiện tại:** Web UI chỉ bật loại chứng từ `supported` trong registry (hiện là `vat_invoice`). Các loại `needs_review`/`planned` không được mở cho đến khi schema và quy tắc nghiệp vụ được xác minh. PDF layout và biến thể OCR hiện tại vẫn là phiên bản MVP; giao diện quản lý không đồng nghĩa đã có nhiều layout thực tế.
+
+
+## XML, linked scenarios and export profiles
+
+The Dataset Studio now writes a well-formed internal XML representation from each canonical document. This is an integration-test format only; it is **not** a legally verified e-invoice XML schema. Manifest fields explicitly retain `xml_schema_verified: false` and `xml_schema_version: null`.
+
+Adjustment and replacement samples are generated as linked scenarios with an original VAT invoice. Adjustment scenarios carry a signed delta; replacement scenarios supersede the original and are not additive.
+
+Each Batch produces two archives:
+- `<batch_id>.zip`: Full Dataset, including source files, OCR derivatives, Canonical JSON, Ground Truth, manifests and reports.
+- `<batch_id>-upload.zip`: Upload Dataset, containing only original PDF/XML inputs and excluding Ground Truth, canonical labels, scan derivatives and corrupted fixtures.
+
+See [Dataset Export Contract](docs/DATASET_EXPORT_CONTRACT.md) for the artifact and scenario contract.
