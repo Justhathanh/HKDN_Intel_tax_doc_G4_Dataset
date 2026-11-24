@@ -80,3 +80,32 @@ def build_dataset_index(batch_dir: Path) -> Path:
     path = batch_dir / "dataset_index.json"
     path.write_text(json.dumps(index, ensure_ascii=False, indent=2), encoding="utf-8")
     return path
+
+
+
+def create_upload_archive(batch_dir: Path, document_ids: set[str] | None = None) -> Path:
+    """Package only original PDF/XML inputs; never leak Ground Truth labels."""
+    import zipfile
+
+    archive = batch_dir.with_name(batch_dir.name + "-upload.zip")
+    documents_dir = batch_dir / "documents"
+    with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED) as output:
+        for manifest_path in sorted(documents_dir.rglob("manifest.json")):
+            document_dir = manifest_path.parent
+            try:
+                manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                continue
+            document_id = manifest.get("document_id")
+            if not document_id or (document_ids is not None and document_id not in document_ids):
+                continue
+            for relative in manifest.get("artifacts", {}):
+                source = document_dir / relative
+                if source.suffix.lower() not in {".pdf", ".xml"}:
+                    continue
+                if source.name in {"invoice_scan.pdf"} or "corrupted" in source.name:
+                    continue
+                if source.is_file():
+                    archive_name = (Path("documents") / document_id / source.name).as_posix()
+                    output.write(source, archive_name)
+    return archive
