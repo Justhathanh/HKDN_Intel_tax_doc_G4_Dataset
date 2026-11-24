@@ -55,3 +55,10 @@ The combined scenario XML is stored with the adjustment/replacement document and
 ## 6. Local dataset cleanup
 
 The **Kho dữ liệu** tab provides a per-batch delete action. The user must explicitly confirm before deletion. The operation removes only the selected batch directory and its adjacent Full Dataset and Upload Dataset ZIP files, and validates that the target is inside `datasets/companies/`. It does not delete source code, other batches or GitHub history. Generated company datasets and ZIP archives are ignored by `.gitignore`.
+
+
+## 7. Batch and company deletion
+
+The **Kho dữ liệu** tab displays a checkbox beside each batch and supports deleting multiple selected batches in one confirmed operation. It removes each selected batch directory and the adjacent Full Dataset and Upload Dataset ZIP archives. All selected paths are validated before deletion begins.
+
+The **Quản lý công ty** tab supports permanent deletion of a company profile. This removes the matching entry from `configs/companies.json` and the company's complete local storage directory, including all batches and ZIP archives. The action requires explicit confirmation and rejects unsafe company IDs or paths outside `datasets/companies/`. This is a destructive local cleanup operation; it does not delete Git history or external copies already downloaded by users.
