@@ -341,7 +341,7 @@ def write_extended_bundle(doc: ExtendedDocument, out_dir: Path, seed: int = 42, 
             }
 
     manifest = {
-        "dataset_id": out_dir.parent.name,
+        "dataset_id": out_dir.parent.parent.name if out_dir.parent.name == "documents" else out_dir.parent.name,
         "document_id": doc.document_id,
         "document_type": doc.document_type,
         "generator_version": generator_version,
