@@ -213,7 +213,8 @@ def test_adjustment_scenario_supports_sales_invoice_as_original(tmp_path, monkey
     assert "vat_amount" not in canonical["metadata"]
     assert canonical["title"] == "HÓA ĐƠN BÁN HÀNG ĐIỀU CHỈNH"
 
-    xml_root = ET.parse(adjustment_dir / canonical["metadata"].get("xml_artifact", adjustment_dir.joinpath(json.loads((adjustment_dir / "manifest.json").read_text(encoding="utf-8")).get("xml_artifact", ""))).name).getroot()
+    adjustment_manifest = json.loads((adjustment_dir / "manifest.json").read_text(encoding="utf-8"))
+    xml_root = ET.parse(adjustment_dir / adjustment_manifest["xml_artifact"]).getroot()
     root_doc = xml_root.find("Root/SyntheticTaxDocument")
     adjusted_doc = xml_root.find("Adjusted/SyntheticTaxDocument")
     assert root_doc.findtext("DocumentType") == "sales_invoice"
