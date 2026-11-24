@@ -268,13 +268,12 @@ DOCUMENT_TYPE_REGISTRY: dict[str, DocumentTypeSpec] = {
         model_field_map=(
             ("taxpayer_name", ("recipient_name",)),
             ("taxpayer_tax_code", ("recipient_tax_code",)),
-            ("payment_date", ("issue_date",)),
             ("amount", ("total_amount",)),
             ("collecting_agency", ("issuer_name",)),
             ("chapter_code", ("metadata.chapter_code",)),
             ("sub_item_code", ("metadata.sub_item_code",)),
         ),
-        unmapped_required_fields=("treasury_account",),
+        unmapped_required_fields=("payment_date", "treasury_account"),
     ),
 
     "tax_notice": DocumentTypeSpec(
@@ -302,10 +301,10 @@ DOCUMENT_TYPE_REGISTRY: dict[str, DocumentTypeSpec] = {
             ("notice_date", ("issue_date",)),
             ("issuing_tax_authority", ("issuer_name",)),
             ("taxpayer_tax_code", ("recipient_tax_code",)),
-            ("content", ("metadata.notice_type", "items")),
             ("deadline_date", ("metadata.deadline_date",)),
             ("payable_amount", ("total_amount",)),
         ),
+        unmapped_required_fields=("content",),
     ),
 
     "fee_receipt": DocumentTypeSpec(
