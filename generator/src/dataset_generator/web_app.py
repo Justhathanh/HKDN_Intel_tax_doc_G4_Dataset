@@ -149,14 +149,14 @@ def delete_selected_batches(manifest_paths: list[Path]) -> int:
 
 def delete_company(company_id: str, companies: list[dict]) -> list[dict]:
     """Permanently delete one company profile and all generated local datasets."""
+    remaining = [company for company in companies if company.get("id") != company_id]
+    if len(remaining) == len(companies):
+        raise ValueError("Company does not exist in configuration")
     company_dir = _safe_company_dir(company_id)
     if company_dir.exists():
         if not company_dir.is_dir():
             raise ValueError("Company storage path is not a directory")
         shutil.rmtree(company_dir)
-    remaining = [company for company in companies if company.get("id") != company_id]
-    if len(remaining) == len(companies):
-        raise ValueError("Company does not exist in configuration")
     save_companies(remaining)
     return remaining
 
