@@ -470,7 +470,7 @@ def create_batch(
                 output_dir = documents_dir / doc.document_id
                 write_extended_bundle(doc, output_dir, seed=current_seed)
                 if scenario_id:
-                    scenario_base = _short_document_base(type_key, current_seed)
+                    scenario_base = _short_document_base(type_key, filename_code)
                     if type_key == "adjustment_invoice":
                         adjustment_base = f"{scenario_base}_adjustment"
                         _rename_pdf_artifacts(output_dir, adjustment_base, "document.pdf")
@@ -498,7 +498,7 @@ def create_batch(
                         adjusted_snapshot=adjusted_snapshot_dict,
                     )
                 else:
-                    short_base = _short_document_base(type_key, current_seed)
+                    short_base = _short_document_base(type_key, filename_code)
                     _rename_pdf_artifacts(output_dir, short_base, "document.pdf")
                     add_xml_and_refresh_manifest(output_dir, f"{short_base}.xml")
 
