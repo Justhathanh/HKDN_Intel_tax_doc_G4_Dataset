@@ -303,6 +303,11 @@ def create_batch(
                         "role": "original",
                         "related_document_type": type_key,
                     }
+                    doc.metadata["reason"] = (
+                        f"Điều chỉnh giá trị hóa đơn gốc {original.series}-{original.invoice_number}"
+                        if type_key == "adjustment_invoice"
+                        else f"Thay thế hóa đơn gốc {original.series}-{original.invoice_number}"
+                    )
                     doc.metadata.update({
                         "scenario_id": scenario_id,
                         "role": "adjustment" if type_key == "adjustment_invoice" else "replacement",
@@ -476,6 +481,8 @@ def create_batch(
         key: DOCUMENT_TYPE_REGISTRY[key].status
         for key in document_types
     }
+    if any(key in document_types for key in ("adjustment_invoice", "replacement_invoice")):
+        status_by_type["vat_invoice"] = DOCUMENT_TYPE_REGISTRY["vat_invoice"].status
 
     manifest = {
         "batch_id": batch_id,
