@@ -61,8 +61,19 @@ def add_adjustment_scenario_xml(
     adjusted_snapshot: dict[str, Any] | None = None,
 ) -> Path:
     documents_dir = batch_dir / "documents"
-    root_dir = documents_dir / root_document_id
-    adjusted_dir = documents_dir / adjusted_document_id
+
+    def find_document_dir(document_id: str) -> Path:
+        for manifest_path in documents_dir.rglob("manifest.json"):
+            try:
+                manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                continue
+            if manifest.get("document_id") == document_id:
+                return manifest_path.parent
+        raise FileNotFoundError(f"Document bundle not found: {document_id}")
+
+    root_dir = find_document_dir(root_document_id)
+    adjusted_dir = find_document_dir(adjusted_document_id)
     root_doc = json.loads((root_dir / "canonical.json").read_text(encoding="utf-8"))
     adjusted_doc = adjusted_snapshot or json.loads((adjusted_dir / "canonical.json").read_text(encoding="utf-8"))
     xml_path = adjusted_dir / filename
@@ -99,6 +110,8 @@ def build_dataset_index(batch_dir: Path) -> Path:
                 "document_id": canonical.get("document_id"),
                 "document_type": canonical.get("document_type"),
                 "relative_path": document_dir.relative_to(batch_dir).as_posix(),
+                "folder_name": document_dir.name,
+                "filename_code": manifest.get("filename_code"),
                 "artifacts": sorted(manifest.get("artifacts", {}).keys()),
                 "validation_status": manifest.get("validation_status"),
                 "schema_verified": manifest.get("schema_verified", False),
@@ -139,6 +152,8 @@ def create_upload_archive(batch_dir: Path, document_ids: set[str] | None = None)
                 if source.name == "invoice_scan.pdf" or source.name.endswith("_scan.pdf") or "corrupted" in source.name:
                     continue
                 if source.is_file():
-                    archive_name = (Path("documents") / document_id / source.name).as_posix()
+                    archive_name = (
+                        document_dir.relative_to(batch_dir) / relative
+                    ).as_posix()
                     output.write(source, archive_name)
     return archive
