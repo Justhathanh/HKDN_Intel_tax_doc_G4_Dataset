@@ -120,6 +120,11 @@ def test_adjustment_scenario_links_original_and_signed_delta(tmp_path, monkeypat
     original = next(item for item in records if item.get("scenario_role") == "original")
     adjustment = next(item for item in records if item["document_type"] == "adjustment_invoice")
     assert adjustment["related_document_id"] == original["document_id"]
+    assert adjustment["filename_code"] == original["filename_code"]
+    assert len(adjustment["filename_code"]) == 3
+    assert adjustment["filename_code"].isdigit()
+    assert 1 <= int(adjustment["filename_code"]) <= 999
+    assert manifest["filename_code_policy"] == "random_001_999_human_lookup_only_collisions_allowed"
     original_gt = json.loads(
         (batch_dir / "documents" / original["document_id"] / "ground_truth.json").read_text(encoding="utf-8")
     )
@@ -190,13 +195,12 @@ def test_replacement_scenario_is_not_additive(tmp_path, monkeypatch):
 
 
 def test_short_filename_pattern_and_shared_adjustment_code():
-    root_name = _short_document_base("adjustment_invoice", 42, "root")
-    adjusted_name = _short_document_base("adjustment_invoice", 42, "adjusted")
-    assert root_name == "adjustment_invoice142_root"
-    assert adjusted_name == "adjustment_invoice142_adjusted"
-    assert root_name.removeprefix("adjustment_invoice").removesuffix("_root") == adjusted_name.removeprefix("adjustment_invoice").removesuffix("_adjusted")
-    assert _short_document_base("vat_invoice", 42) == "tax_invoice142"
-
+    root_name = _short_document_base("adjustment_invoice", 7, "root")
+    adjusted_name = _short_document_base("adjustment_invoice", 7, "adjusted")
+    assert root_name == "adjustment_invoice007_root"
+    assert adjusted_name == "adjustment_invoice007_adjusted"
+    assert _short_document_base("vat_invoice", 42) == "tax_invoice042"
+    assert _short_document_base("replacement_invoice", 999) == "replacement_invoice999"
 
 def test_combined_adjustment_xml_has_root_and_adjusted_nodes():
     root_doc = {
