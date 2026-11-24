@@ -7,7 +7,7 @@ import random
 from datetime import datetime
 from decimal import Decimal
 from pathlib import Path
-import fitz  # PyMuPDF
+import pymupdf
 import numpy as np
 from PIL import Image, ImageFilter
 from reportlab.lib import colors
@@ -272,7 +272,7 @@ def export_images_and_scan_pdf(pdf_path: Path, out_dir: Path, seed: int = 42):
     images_dir = out_dir / "images"
     images_dir.mkdir(parents=True, exist_ok=True)
 
-    doc = fitz.open(pdf_path)
+    doc = pymupdf.open(pdf_path)
     page = doc[0]
     pix = page.get_pixmap(dpi=200)
     clean_img = Image.open(io.BytesIO(pix.tobytes("png"))).convert("RGB")
