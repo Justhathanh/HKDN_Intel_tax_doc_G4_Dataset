@@ -321,6 +321,11 @@ def write_extended_bundle(doc: ExtendedDocument, out_dir: Path, seed: int = 42, 
             "totals.total_amount": {"displayed": money(doc.total_amount), "normalized": str(doc.total_amount), "present": True},
         },
         "line_items": doc.to_dict()["items"],
+        "relationships": {
+            key: doc.metadata[key]
+            for key in ("scenario_id", "role", "references_document_id", "reference_invoice_number", "reference_series", "scenario_expected", "adjustment_direction", "adjustment_delta_signed")
+            if key in doc.metadata
+        },
     }
     (out_dir / "ground_truth.json").write_text(json.dumps(gt, ensure_ascii=False, indent=2), encoding="utf-8")
 
