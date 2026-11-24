@@ -126,7 +126,7 @@ def test_adjustment_scenario_links_original_and_signed_delta(tmp_path, monkeypat
     assert 1 <= int(adjustment["filename_code"]) <= 999
     assert manifest["filename_code_policy"] == "random_001_999_human_lookup_only_collisions_allowed"
     original_gt = json.loads(
-        (batch_dir / "documents" / original["document_id"] / "ground_truth.json").read_text(encoding="utf-8")
+        (batch_dir / original["relative_path"] / "ground_truth.json").read_text(encoding="utf-8")
     )
     assert original_gt["relationships"]["scenario_id"] == adjustment["scenario_id"]
 
@@ -158,19 +158,21 @@ def test_adjustment_scenario_links_original_and_signed_delta(tmp_path, monkeypat
     assert doc_manifest["folder_name"] == adjustment["folder_name"]
     assert original["folder_name"].startswith("tax_invoice")
     assert adjustment["folder_name"].startswith("adjustment_invoice")
-    assert any(root_dir.glob("adjustment_invoice*_root.pdf"))
-    assert any(root_dir.glob("adjustment_invoice*_root.xml"))
+    assert any(root_dir.glob("tax_invoice*_root.pdf"))
+    assert any(root_dir.glob("tax_invoice*_root.xml"))
     assert (batch_dir / "dataset_index.json").is_file()
     assert archive.is_file()
     assert archive.with_name(archive.stem + "-upload.zip").is_file()
     with zipfile.ZipFile(archive) as full_zip:
         full_names = set(full_zip.namelist())
-    assert f"documents/{original[\"folder_name\"]}/manifest.json" in full_names
-    assert f"documents/{adjustment[\"folder_name\"]}/manifest.json" in full_names
+    original_manifest_path = "documents/" + original["folder_name"] + "/manifest.json"
+    adjustment_manifest_path = "documents/" + adjustment["folder_name"] + "/manifest.json"
+    assert original_manifest_path in full_names
+    assert adjustment_manifest_path in full_names
     with zipfile.ZipFile(archive.with_name(archive.stem + "-upload.zip")) as upload_zip:
         upload_names = set(upload_zip.namelist())
-    assert any(name.startswith(f"documents/{original[\"folder_name\"]}/") for name in upload_names)
-    assert any(name.startswith(f"documents/{adjustment[\"folder_name\"]}/") for name in upload_names)
+    assert any(name.startswith("documents/" + original["folder_name"] + "/") for name in upload_names)
+    assert any(name.startswith("documents/" + adjustment["folder_name"] + "/") for name in upload_names)
 
 
 def test_replacement_scenario_is_not_additive(tmp_path, monkeypatch):
@@ -199,7 +201,7 @@ def test_replacement_scenario_is_not_additive(tmp_path, monkeypatch):
         if item["document_type"] == "replacement_invoice"
     )
     canonical = json.loads(
-        (batch_dir / "documents" / replacement["document_id"] / "canonical.json").read_text(encoding="utf-8")
+        (batch_dir / replacement["relative_path"] / "canonical.json").read_text(encoding="utf-8")
     )
     expected = canonical["metadata"]["scenario_expected"]
     assert expected["rule"] == "replacement_supersedes_original_not_additive"
@@ -240,3 +242,15 @@ def test_combined_adjustment_xml_has_root_and_adjusted_nodes():
     assert root.findtext("ScenarioId") == "scenario-1"
     assert root.find("Root/SyntheticTaxDocument/DocumentId").text == "root-1"
     assert root.find("Adjusted/SyntheticTaxDocument/DocumentId").text == "adjusted-1"
+
+
+def test_document_folder_collision_keeps_code_and_adds_folder_suffix(tmp_path):
+    from dataset_generator.batch_generator import _allocate_document_dir
+
+    documents_dir = tmp_path / "documents"
+    documents_dir.mkdir()
+    first = _allocate_document_dir(documents_dir, "vat_invoice", 27)
+    second = _allocate_document_dir(documents_dir, "vat_invoice", 27)
+
+    assert first.name == "tax_invoice027"
+    assert second.name == "tax_invoice027__2"
