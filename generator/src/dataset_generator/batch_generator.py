@@ -11,7 +11,7 @@ from typing import Any
 
 from decimal import Decimal, InvalidOperation
 from .exporters import export_pdf, write_bundle, write_corrupted_bundle
-from .extended_docs import create_extended_document, write_extended_bundle
+from .extended_docs import ExtendedDocument, create_extended_document, render_extended_pdf, write_extended_bundle
 from .factory import create_sample_invoice, mutate_invoice
 from .model import CanonicalInvoice, InvoiceLine, Party
 from .registry import DOCUMENT_TYPE_REGISTRY
@@ -306,25 +306,11 @@ def _build_adjusted_invoice_snapshot(original: CanonicalInvoice, adjustment: Any
     )
 
 
-def _build_adjusted_sales_snapshot(original: Any, adjustment: Any) -> dict[str, Any]:
+def _build_adjusted_sales_snapshot(original: ExtendedDocument, adjustment: Any) -> ExtendedDocument:
     """Build the post-adjustment state for a non-VAT sales invoice."""
-    snapshot = original.to_dict()
     metadata = adjustment.metadata
     signed_delta = Decimal(str(metadata["adjustment_delta_signed"]))
-    snapshot["document_id"] = f"{original.document_id}-adjusted"
-    snapshot["issue_date"] = adjustment.issue_date
-    snapshot["total_amount"] = str(metadata["scenario_expected"]["final_total"])
-    snapshot["items"] = [
-        *snapshot.get("items", []),
-        {
-            "name": f"Điều chỉnh {metadata['adjustment_direction']} theo {adjustment.reference_code}",
-            "unit": "Khoản",
-            "quantity": "1",
-            "unit_price": str(signed_delta),
-            "amount": str(signed_delta),
-        },
-    ]
-    snapshot_metadata = dict(snapshot.get("metadata", {}))
+    snapshot_metadata = dict(original.metadata)
     snapshot_metadata["scenario"] = {
         "scenario_id": metadata["scenario_id"],
         "role": "adjusted",
@@ -336,8 +322,34 @@ def _build_adjusted_sales_snapshot(original: Any, adjustment: Any) -> dict[str, 
         "expected_final_total": str(metadata["scenario_expected"]["final_total"]),
     }
     snapshot_metadata["scenario_expected"] = metadata["scenario_expected"]
-    snapshot["metadata"] = snapshot_metadata
-    return snapshot
+    return ExtendedDocument(
+        document_id=f"{original.document_id}-adjusted",
+        document_type="sales_invoice",
+        title="HÓA ĐƠN BÁN HÀNG SAU ĐIỀU CHỈNH",
+        issue_date=adjustment.issue_date,
+        reference_code=original.reference_code,
+        issuer_name=original.issuer_name,
+        issuer_tax_code=original.issuer_tax_code,
+        issuer_address=original.issuer_address,
+        recipient_name=original.recipient_name,
+        recipient_tax_code=original.recipient_tax_code,
+        recipient_address=original.recipient_address,
+        total_amount=Decimal(str(metadata["scenario_expected"]["final_total"])),
+        currency=original.currency,
+        schema_verified=False,
+        synthetic=True,
+        metadata=snapshot_metadata,
+        items=[
+            *original.items,
+            {
+                "name": f"Điều chỉnh {metadata['adjustment_direction']} theo {adjustment.reference_code}",
+                "unit": "Khoản",
+                "quantity": Decimal("1"),
+                "unit_price": signed_delta,
+                "amount": signed_delta,
+            },
+        ],
+    )
 
 
 def create_batch(
@@ -614,8 +626,12 @@ def create_batch(
                         _rename_pdf_artifacts(output_dir, adjustment_base, "document.pdf")
                         adjusted_base = f"{scenario_base}_adjusted"
                         adjusted_pdf = output_dir / f"{adjusted_base}.pdf"
-                        export_pdf(adjusted_invoice_snapshot, adjusted_pdf)
-                        adjusted_snapshot_dict = adjusted_invoice_snapshot.to_dict()
+                        if isinstance(adjusted_invoice_snapshot, CanonicalInvoice):
+                            export_pdf(adjusted_invoice_snapshot, adjusted_pdf)
+                            adjusted_snapshot_dict = adjusted_invoice_snapshot.to_dict()
+                        else:
+                            render_extended_pdf(adjusted_invoice_snapshot, adjusted_pdf)
+                            adjusted_snapshot_dict = adjusted_invoice_snapshot.to_dict()
                     else:
                         adjusted_base = f"{scenario_base}_replacement"
                         _rename_pdf_artifacts(output_dir, adjusted_base, "document.pdf")
