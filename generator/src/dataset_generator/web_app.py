@@ -225,10 +225,16 @@ def render_generate_tab(active: list[dict]) -> None:
     )
 
     if selected_types:
-        total = len(selected_types) * int(count)
+        requested_total = len(selected_types) * int(count)
+        scenario_originals = sum(
+            1 for key in selected_types
+            if key in {"adjustment_invoice", "replacement_invoice"}
+        ) * int(count)
+        total = requested_total + scenario_originals
         st.info(
-            f"Dự kiến tạo {total} chứng từ hợp lệ "
-            f"({count} chứng từ × {len(selected_types)} loại)."
+            f"Dự kiến tạo {total} chứng từ gốc/liên kết "
+            f"({requested_total} chứng từ được chọn + "
+            f"{scenario_originals} hóa đơn gốc cho scenario)."
         )
     else:
         st.info("Hãy chọn ít nhất một loại chứng từ.")
