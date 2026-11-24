@@ -9,10 +9,10 @@ from pathlib import Path
 from typing import Any
 
 from decimal import Decimal, InvalidOperation
-from .exporters import write_bundle, write_corrupted_bundle
+from .exporters import export_pdf, write_bundle, write_corrupted_bundle
 from .extended_docs import create_extended_document, write_extended_bundle
 from .factory import create_sample_invoice, mutate_invoice
-from .model import Party
+from .model import CanonicalInvoice, InvoiceLine, Party
 from .registry import DOCUMENT_TYPE_REGISTRY
 from .validation import validate_invoice
 from .bundle_tools import add_xml_and_refresh_manifest, add_adjustment_scenario_xml, build_dataset_index, create_upload_archive
@@ -220,6 +220,53 @@ def _rename_pdf_artifacts(document_dir: Path, base_name: str, primary_pdf: str) 
         scan.rename(scan_target)
 
 
+def _build_adjusted_invoice_snapshot(original: CanonicalInvoice, adjustment: Any) -> CanonicalInvoice:
+    """Build the complete invoice state after applying an adjustment delta."""
+    metadata = adjustment.metadata
+    subtotal_delta = Decimal(str(metadata["subtotal"]))
+    signed_subtotal_delta = (
+        -subtotal_delta
+        if metadata["adjustment_direction"] == "decrease"
+        else subtotal_delta
+    )
+    adjustment_line = InvoiceLine(
+        name=f"Điều chỉnh {metadata['adjustment_direction']} theo {adjustment.reference_code}",
+        unit="Khoản",
+        quantity=Decimal("1"),
+        unit_price=signed_subtotal_delta,
+        vat_rate=Decimal("8"),
+    )
+    extra = dict(original.extra)
+    extra["scenario"] = {
+        "scenario_id": metadata["scenario_id"],
+        "role": "adjusted",
+        "root_document_id": original.document_id,
+        "adjustment_document_id": adjustment.document_id,
+        "adjustment_reason": metadata["reason"],
+        "adjustment_direction": metadata["adjustment_direction"],
+        "adjustment_delta_signed": str(metadata["adjustment_delta_signed"]),
+        "expected_final_total": str(metadata["scenario_expected"]["final_total"]),
+    }
+    return CanonicalInvoice(
+        document_id=f"{original.document_id}-adjusted",
+        document_type="vat_invoice",
+        issue_date=adjustment.issue_date,
+        form_number=original.form_number,
+        series=original.series,
+        invoice_number=original.invoice_number,
+        seller=original.seller,
+        buyer=original.buyer,
+        lines=[*original.lines, adjustment_line],
+        currency=original.currency,
+        payment_method=original.payment_method,
+        synthetic=True,
+        legal_profile_version=original.legal_profile_version,
+        xml_schema_version=original.xml_schema_version,
+        thtax_core_contract_version=original.thtax_core_contract_version,
+        extra=extra,
+    )
+
+
 def create_batch(
     company: dict,
     document_types: list[str],
@@ -309,6 +356,7 @@ def create_batch(
             else:
                 scenario_original_record = None
                 scenario_id = None
+                adjusted_invoice_snapshot = None
                 doc = create_extended_document(type_key, seed=current_seed)
                 _apply_company_to_extended(doc, company, direction)
 
@@ -379,6 +427,9 @@ def create_batch(
                             "final_total": doc.total_amount,
                             "rule": "replacement_supersedes_original_not_additive",
                         }
+
+                    if type_key == "adjustment_invoice":
+                        adjusted_invoice_snapshot = _build_adjusted_invoice_snapshot(original, doc)
 
                     original_errors = validate_invoice(original)
                     if original_errors:
