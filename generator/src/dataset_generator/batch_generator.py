@@ -15,6 +15,7 @@ from .factory import create_sample_invoice, mutate_invoice
 from .model import Party
 from .registry import DOCUMENT_TYPE_REGISTRY
 from .validation import validate_invoice
+from .bundle_tools import add_xml_and_refresh_manifest, build_dataset_index, create_upload_archive
 
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -264,6 +265,7 @@ def create_batch(
 
                 output_dir = documents_dir / invoice.document_id
                 write_bundle(invoice, output_dir)
+                add_xml_and_refresh_manifest(output_dir)
 
                 record = {
                     "document_id": invoice.document_id,
@@ -287,6 +289,7 @@ def create_batch(
 
                 output_dir = documents_dir / doc.document_id
                 write_extended_bundle(doc, output_dir, seed=current_seed)
+                add_xml_and_refresh_manifest(output_dir)
 
                 record = {
                     "document_id": doc.document_id,
@@ -344,6 +347,7 @@ def create_batch(
                 vat_dir / f"{case}-{invoice.document_id}",
                 validation_errors=errors,
             )
+            add_xml_and_refresh_manifest(vat_dir / f"{case}-{invoice.document_id}")
             validation_records.append({
                 "document_id": invoice.document_id,
                 "document_type": "vat_invoice",
@@ -398,9 +402,18 @@ def create_batch(
             }
             for record in document_records
         ],
+        "export_policy": {
+            "full_dataset": "includes source files, scans, canonical data, Ground Truth, manifests and reports",
+            "upload_dataset": "includes only original PDF/XML input files; excludes Ground Truth and corrupted samples",
+        },
+        "full_dataset_archive": f"{batch_id}.zip",
+        "upload_dataset_archive": f"{batch_id}-upload.zip",
+        "xml_format": "thtax-synthetic-internal-v1",
+        "xml_schema_verified": False,
         "notice": (
             "Synthetic data only. Not real tax documents and not valid "
-            "for tax/legal use. Extended document schemas are unverified."
+            "for tax/legal use. XML is well-formed internal interchange data, "
+            "not a legally verified tax XML schema. Extended schemas are unverified."
         ),
     }
 
@@ -421,6 +434,8 @@ def create_batch(
         encoding="utf-8",
     )
 
+    build_dataset_index(batch_dir)
+    create_upload_archive(batch_dir)
     zip_path = shutil.make_archive(
         str(batch_dir),
         "zip",
