@@ -37,3 +37,14 @@ Contains only original PDF/XML inputs for valid generated document bundles. It e
 ## 5. Scope labels
 
 Registry status remains independent from generator availability. A generated Extended sample is still marked unverified until its schema and business rules have been reviewed. Core/Pilot and Extended must not be conflated in reports.
+
+
+## Short filenames and adjustment scenario pair
+
+Generated source filenames use a document-type prefix and a reproducible three-digit code derived from the batch seed, for example `tax_invoice387.pdf` and `tax_invoice387.xml`. The same code is reused for both members of a linked adjustment/replacement scenario:
+- `adjustment_invoice387_root.pdf`: original invoice PDF.
+- `adjustment_invoice387_adjusted.pdf`: adjusted invoice PDF.
+- `adjustment_invoice387_root.xml`: standalone original XML.
+- `adjustment_invoice387.xml`: one scenario XML containing both `Root` and `Adjusted` document nodes.
+
+The combined scenario XML is stored with the adjusted document and its artifact entry is recorded in that document's manifest. The Windows Explorer "Type" label can show the default associated application (for example Microsoft Edge); verify the actual file extension is `.xml` and inspect the XML declaration/content rather than relying on that label.
