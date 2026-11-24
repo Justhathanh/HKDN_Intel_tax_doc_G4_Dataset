@@ -1,0 +1,33 @@
+{
+  "document_id": "c341fa71-832c-5de3-b9a8-2be5eb50e066",
+  "document_type": "pit_withholding",
+  "title": "CHỨNG TỪ KHẤU TRỪ THUẾ THU NHẬP CÁ NHÂN",
+  "issue_date": "2026-08-05",
+  "reference_code": "CT26T - 0000742",
+  "issuer_name": "CÔNG TY CỔ PHẦN THƯƠNG MẠI DỊCH VỤ DEMO VIỆT",
+  "issuer_tax_code": "9902345678-001",
+  "issuer_address": "Tầng 8, Tòa nhà Thử Nghiệm, Phố Duy Tân, Quận Cầu Giấy, Hà Nội",
+  "recipient_name": "NGUYỄN VĂN MẪU (CÁ NHÂN GIẢ LẬP)",
+  "recipient_tax_code": "9988776655",
+  "recipient_address": "Quận Bình Thạnh, TP. Hồ Chí Minh",
+  "total_amount": "3500000",
+  "currency": "VND",
+  "schema_verified": false,
+  "synthetic": true,
+  "metadata": {
+    "serial": "CT26T",
+    "certificate_number": "0000742",
+    "taxable_income": "35000000",
+    "withheld_tax": "3500000",
+    "income_period": "Tháng 10/2026"
+  },
+  "items": [
+    {
+      "name": "Thu nhập từ tiền lương, tiền công (Khấu trừ 10%)",
+      "unit": "Tháng",
+      "quantity": "1",
+      "unit_price": "35000000",
+      "amount": "3500000"
+    }
+  ]
+}

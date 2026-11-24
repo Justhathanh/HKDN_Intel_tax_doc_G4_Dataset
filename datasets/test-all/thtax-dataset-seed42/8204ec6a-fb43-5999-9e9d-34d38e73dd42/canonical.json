@@ -1,0 +1,39 @@
+{
+  "document_id": "8204ec6a-fb43-5999-9e9d-34d38e73dd42",
+  "document_type": "sales_invoice",
+  "title": "HÓA ĐƠN BÁN HÀNG",
+  "issue_date": "2026-11-02",
+  "reference_code": "2C26TAA - 00000142",
+  "issuer_name": "CÔNG TY TNHH PHẦN MỀM MẪU THTAX",
+  "issuer_tax_code": "9903456789",
+  "issuer_address": "Số 88 Đường Bạch Đằng, Quận Hải Châu, TP. Đà Nẵng",
+  "recipient_name": "DOANH NGHIỆP TƯ NHÂN THỬ NGHIỆM C",
+  "recipient_tax_code": "9933334444-002",
+  "recipient_address": "Số 12 Đường Xa Lộ Hà Nội, TP. Thủ Đức, TP. Hồ Chí Minh",
+  "total_amount": "70200000",
+  "currency": "VND",
+  "schema_verified": false,
+  "synthetic": true,
+  "metadata": {
+    "form_number": "2",
+    "series": "2C26TAA",
+    "invoice_number": "00000142",
+    "tax_regime": "Trực tiếp trên doanh thu"
+  },
+  "items": [
+    {
+      "name": "Bản quyền phần mềm quản lý hóa đơn điện tử (12 tháng)",
+      "unit": "Năm",
+      "quantity": "3",
+      "unit_price": "4700000",
+      "amount": "14100000"
+    },
+    {
+      "name": "Thiết bị máy chủ lưu trữ chuyên dụng NAS",
+      "unit": "Bộ",
+      "quantity": "3",
+      "unit_price": "18700000",
+      "amount": "56100000"
+    }
+  ]
+}

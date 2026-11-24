@@ -1,0 +1,89 @@
+{
+  "document_id": "d119ac8b-1cbc-525a-a45a-579ef988ad89",
+  "document_label": "valid_synthetic",
+  "expected_validation_errors": [],
+  "fields": {
+    "form_number": {
+      "displayed": "1",
+      "normalized": "1",
+      "present": true
+    },
+    "series": {
+      "displayed": "C26TAB",
+      "normalized": "C26TAB",
+      "present": true
+    },
+    "invoice_number": {
+      "displayed": "00000042",
+      "normalized": "00000042",
+      "present": true
+    },
+    "issue_date": {
+      "displayed": "Ngày 09 tháng 09 năm 2026",
+      "normalized": "2026-09-09",
+      "present": true
+    },
+    "seller.name": {
+      "displayed": "CÔNG TY TNHH PHẦN MỀM MẪU THTAX",
+      "normalized": "CÔNG TY TNHH PHẦN MỀM MẪU THTAX",
+      "present": true
+    },
+    "seller.tax_code": {
+      "displayed": "9903456789",
+      "normalized": "9903456789",
+      "present": true
+    },
+    "seller.address": {
+      "displayed": "Số 88 Đường Bạch Đằng, Quận Hải Châu, TP. Đà Nẵng",
+      "normalized": "Số 88 Đường Bạch Đằng, Quận Hải Châu, TP. Đà Nẵng",
+      "present": true
+    },
+    "buyer.name": {
+      "displayed": "CÔNG TY TNHH KHÁCH HÀNG DOANH NGHIỆP MẪU A",
+      "normalized": "CÔNG TY TNHH KHÁCH HÀNG DOANH NGHIỆP MẪU A",
+      "present": true
+    },
+    "buyer.tax_code": {
+      "displayed": "9911112222",
+      "normalized": "9911112222",
+      "present": true
+    },
+    "buyer.address": {
+      "displayed": "Số 456 Đường Võ Văn Tần, Phường 5, Quận 3, TP. Hồ Chí Minh",
+      "normalized": "Số 456 Đường Võ Văn Tần, Phường 5, Quận 3, TP. Hồ Chí Minh",
+      "present": true
+    },
+    "totals.subtotal": {
+      "displayed": "9.700.000",
+      "normalized": "9700000",
+      "present": true
+    },
+    "totals.vat_total": {
+      "displayed": "0",
+      "normalized": "0",
+      "present": true
+    },
+    "totals.grand_total": {
+      "displayed": "9.700.000",
+      "normalized": "9700000",
+      "present": true
+    }
+  },
+  "line_items": [
+    {
+      "name": "Bản quyền phần mềm quản lý hóa đơn điện tử (12 tháng)",
+      "unit": "Năm",
+      "quantity": "1",
+      "unit_price": "5900000",
+      "vat_rate": "0"
+    },
+    {
+      "name": "Dịch vụ bảo trì hệ thống hạ tầng mạng nội bộ",
+      "unit": "Lần",
+      "quantity": "1",
+      "unit_price": "3800000",
+      "vat_rate": "0"
+    }
+  ],
+  "relationships": "valid"
+}

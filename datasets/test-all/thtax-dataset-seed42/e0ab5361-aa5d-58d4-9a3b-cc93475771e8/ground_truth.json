@@ -1,0 +1,58 @@
+{
+  "document_id": "e0ab5361-aa5d-58d4-9a3b-cc93475771e8",
+  "document_type": "adjustment_invoice",
+  "document_label": "reference_unverified_synthetic",
+  "schema_verified": false,
+  "fields": {
+    "reference_code": {
+      "displayed": "C26TAA - 00000242",
+      "normalized": "C26TAA - 00000242",
+      "present": true
+    },
+    "issue_date": {
+      "displayed": "Ngày 05 tháng 11 năm 2026",
+      "normalized": "2026-11-05",
+      "present": true
+    },
+    "issuer.name": {
+      "displayed": "CÔNG TY CỔ PHẦN THƯƠNG MẠI DỊCH VỤ DEMO VIỆT",
+      "normalized": "CÔNG TY CỔ PHẦN THƯƠNG MẠI DỊCH VỤ DEMO VIỆT",
+      "present": true
+    },
+    "issuer.tax_code": {
+      "displayed": "9902345678-001",
+      "normalized": "9902345678-001",
+      "present": true
+    },
+    "recipient.name": {
+      "displayed": "CÔNG TY TNHH KHÁCH HÀNG DOANH NGHIỆP MẪU A",
+      "normalized": "CÔNG TY TNHH KHÁCH HÀNG DOANH NGHIỆP MẪU A",
+      "present": true
+    },
+    "totals.total_amount": {
+      "displayed": "44.280.000",
+      "normalized": "44280000",
+      "present": true
+    }
+  },
+  "line_items": [
+    {
+      "name": "Dịch vụ bảo trì hệ thống hạ tầng mạng nội bộ",
+      "unit": "Lần",
+      "quantity": "2",
+      "unit_price": "2000000",
+      "amount": "4000000"
+    },
+    {
+      "name": "Thiết bị máy chủ lưu trữ chuyên dụng NAS",
+      "unit": "Bộ",
+      "quantity": "2",
+      "unit_price": "18500000",
+      "amount": "37000000"
+    }
+  ],
+  "relationships": {
+    "reference_invoice_number": "00000241",
+    "reference_series": "C26TAA"
+  }
+}

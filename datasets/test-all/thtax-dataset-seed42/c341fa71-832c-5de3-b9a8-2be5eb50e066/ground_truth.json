@@ -1,0 +1,48 @@
+{
+  "document_id": "c341fa71-832c-5de3-b9a8-2be5eb50e066",
+  "document_type": "pit_withholding",
+  "document_label": "reference_unverified_synthetic",
+  "schema_verified": false,
+  "fields": {
+    "reference_code": {
+      "displayed": "CT26T - 0000742",
+      "normalized": "CT26T - 0000742",
+      "present": true
+    },
+    "issue_date": {
+      "displayed": "Ngày 05 tháng 08 năm 2026",
+      "normalized": "2026-08-05",
+      "present": true
+    },
+    "issuer.name": {
+      "displayed": "CÔNG TY CỔ PHẦN THƯƠNG MẠI DỊCH VỤ DEMO VIỆT",
+      "normalized": "CÔNG TY CỔ PHẦN THƯƠNG MẠI DỊCH VỤ DEMO VIỆT",
+      "present": true
+    },
+    "issuer.tax_code": {
+      "displayed": "9902345678-001",
+      "normalized": "9902345678-001",
+      "present": true
+    },
+    "recipient.name": {
+      "displayed": "NGUYỄN VĂN MẪU (CÁ NHÂN GIẢ LẬP)",
+      "normalized": "NGUYỄN VĂN MẪU (CÁ NHÂN GIẢ LẬP)",
+      "present": true
+    },
+    "totals.total_amount": {
+      "displayed": "3.500.000",
+      "normalized": "3500000",
+      "present": true
+    }
+  },
+  "line_items": [
+    {
+      "name": "Thu nhập từ tiền lương, tiền công (Khấu trừ 10%)",
+      "unit": "Tháng",
+      "quantity": "1",
+      "unit_price": "35000000",
+      "amount": "3500000"
+    }
+  ],
+  "relationships": {}
+}

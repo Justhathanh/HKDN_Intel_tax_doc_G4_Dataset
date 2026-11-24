@@ -1,0 +1,45 @@
+{
+  "dataset_id": "thtax-dataset-seed42",
+  "document_id": "ba646ef1-c743-58cf-9ccb-4bfaa8123847",
+  "document_type": "fee_receipt",
+  "generator_version": "0.2.0",
+  "schema_verified": false,
+  "xml_schema_version": null,
+  "thtax_core_contract_version": "1.0.0",
+  "synthetic": true,
+  "seed": 642,
+  "artifacts": {
+    "canonical.json": {
+      "mime_type": "application/json",
+      "sha256": "dd86e7d4477725082ac5ef657c2241c048bba5ca835504c0a1bfa1dbbc981b23",
+      "bytes": 995
+    },
+    "document.pdf": {
+      "mime_type": "application/pdf",
+      "sha256": "d00aea4f0dfc5fd5a9a89b6005cd20f7d6f1ef2373889570f7140fa04a35b57b",
+      "bytes": 83065
+    },
+    "ground_truth.json": {
+      "mime_type": "application/json",
+      "sha256": "65970113e9a106275bae5bcd740b6b5b10e715df61d7933e1a096c491baa96ea",
+      "bytes": 1378
+    },
+    "images/page-001.png": {
+      "mime_type": "image/png",
+      "sha256": "6e792bc125f10427fbb1597737aa9ec8e63c60b103c1997decc6f7e2d14e4faa",
+      "bytes": 125484
+    },
+    "images/page-001_blur.jpg": {
+      "mime_type": "image/jpeg",
+      "sha256": "7324c4554f470005d3785ac0c96fcc78b45924309ba4e6ae12f2977e3fbb2596",
+      "bytes": 253216
+    },
+    "invoice_scan.pdf": {
+      "mime_type": "application/pdf",
+      "sha256": "bd9e2b91bbbe30228bb5f463b96ed6bbd33830243bf8547a61e89dd304705b73",
+      "bytes": 254126
+    }
+  },
+  "validation_status": "reference_unverified_synthetic",
+  "validation_errors": []
+}

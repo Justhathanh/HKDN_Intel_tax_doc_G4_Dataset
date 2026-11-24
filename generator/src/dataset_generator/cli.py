@@ -1,4 +1,4 @@
-﻿import argparse
+import argparse
 import shutil
 import sys
 from pathlib import Path
@@ -15,7 +15,7 @@ def main():
         "--document-type",
         type=str,
         default="vat_invoice",
-        help="Loại chứng từ cần tạo (mặc định: vat_invoice, hoặc 'all' để tạo đủ 9 loại)",
+        help="Loại chứng từ cần tạo (mặc định: vat_invoice; 'all' để tạo các loại đủ điều kiện)",
     )
     parser.add_argument("--count", type=int, default=1)
     parser.add_argument("--seed", type=int, default=42)
@@ -53,12 +53,31 @@ def main():
         try:
             doc_spec = get_document_type(args.document_type)
         except KeyError:
-            valid_keys = ", ".join(list(DOCUMENT_TYPE_REGISTRY.keys()) + ["all"])
-            parser.error(f"Invalid --document-type '{args.document_type}'. Available: {valid_keys}")
-
-        if doc_spec.status != "supported" and not args.allow_unverified:
+            valid_keys = ", ".join(
+                list(DOCUMENT_TYPE_REGISTRY.keys()) + ["all"]
+            )
             parser.error(
-                f"Document type '{args.document_type}' is '{doc_spec.status}' (schema unverified). "
+                f"Invalid --document-type '{args.document_type}'. Available: {valid_keys}"
+            )
+
+        if doc_spec.status == "planned":
+            parser.error(
+                f"Document type '{args.document_type}' is planned and not available yet."
+            )
+
+        if doc_spec.status == "unsupported":
+            parser.error(
+                f"Document type '{args.document_type}' is unsupported."
+            )
+
+        if doc_spec.status == "in_progress":
+            parser.error(
+                f"Document type '{args.document_type}' is still in progress."
+            )
+
+        if doc_spec.status == "needs_review" and not args.allow_unverified:
+            parser.error(
+                f"Document type '{args.document_type}' requires review. "
                 f"Pass --allow-unverified to generate reference samples."
             )
 
@@ -101,19 +120,41 @@ def main():
                 write_corrupted_bundle(batch_dir / f"corrupted-{case}", case_name=case)
                 print(f"Generated CORRUPTED {case} -> {batch_dir}")
 
-    # Sinh 8 loại chứng từ mở rộng (khi truyền --document-type all hoặc --allow-unverified)
+    # Sinh các loại chứng từ mở rộng
     ext_types = []
+
     if args.document_type == "all":
-        ext_types = [k for k in DOCUMENT_TYPE_REGISTRY.keys() if k != "vat_invoice"]
-    elif args.document_type != "vat_invoice" and args.allow_unverified:
+        ext_types = [
+            key
+            for key, spec in DOCUMENT_TYPE_REGISTRY.items()
+            if key != "vat_invoice"
+            and (
+                spec.status == "supported"
+                or (
+                    spec.status == "needs_review"
+                    and args.allow_unverified
+                )
+            )
+        ]
+
+    elif args.document_type != "vat_invoice":
         ext_types = [args.document_type]
 
     for idx, ext_type in enumerate(ext_types):
         for i in range(args.count):
             ext_seed = args.seed + (idx + 1) * 100 + i
             ext_doc = create_extended_document(ext_type, seed=ext_seed)
-            write_extended_bundle(ext_doc, batch_dir / ext_doc.document_id, seed=ext_seed)
-            print(f"Generated EXTENDED ({ext_type}) {ext_doc.document_id} -> {batch_dir}")
+
+            write_extended_bundle(
+                ext_doc,
+                batch_dir / ext_doc.document_id,
+                seed=ext_seed,
+            )
+
+            print(
+                f"Generated EXTENDED ({ext_type}) "
+                f"{ext_doc.document_id} -> {batch_dir}"
+            )
 
     if args.zip:
         zip_path = shutil.make_archive(str(batch_dir), "zip", root_dir=str(batch_dir))

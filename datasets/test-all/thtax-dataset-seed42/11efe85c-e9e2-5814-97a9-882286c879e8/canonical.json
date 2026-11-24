@@ -1,0 +1,43 @@
+{
+  "document_id": "11efe85c-e9e2-5814-97a9-882286c879e8",
+  "document_type": "replacement_invoice",
+  "title": "HÓA ĐƠN GTGT THAY THẾ",
+  "issue_date": "2026-07-19",
+  "reference_code": "C26TAA - 00000342",
+  "issuer_name": "CÔNG TY TNHH GIẢI PHÁP CÔNG NGHỆ MINH HỌA (DỮ LIỆU GIẢ LẬP)",
+  "issuer_tax_code": "9901234567",
+  "issuer_address": "Số 123 Đường Nguyễn Huệ, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh",
+  "recipient_name": "CÔNG TY TNHH KHÁCH HÀNG DOANH NGHIỆP MẪU A",
+  "recipient_tax_code": "9911112222",
+  "recipient_address": "Số 456 Đường Võ Văn Tần, Phường 5, Quận 3, TP. Hồ Chí Minh",
+  "total_amount": "67392000",
+  "currency": "VND",
+  "schema_verified": false,
+  "synthetic": true,
+  "metadata": {
+    "form_number": "1",
+    "series": "C26TAA",
+    "invoice_number": "00000342",
+    "reference_invoice_number": "00000341",
+    "reference_series": "C26TAA",
+    "reason": "Thay thế cho hóa đơn điện tử Mẫu số 1, Ký hiệu C26TAA, Số 00000341 lập sai thông tin địa chỉ",
+    "subtotal": "62400000",
+    "vat_amount": "4992000"
+  },
+  "items": [
+    {
+      "name": "Dịch vụ tư vấn giải pháp chuyển đổi số doanh nghiệp",
+      "unit": "Gói",
+      "quantity": "4",
+      "unit_price": "14600000",
+      "amount": "58400000"
+    },
+    {
+      "name": "Dịch vụ bảo trì hệ thống hạ tầng mạng nội bộ",
+      "unit": "Lần",
+      "quantity": "1",
+      "unit_price": "4000000",
+      "amount": "4000000"
+    }
+  ]
+}

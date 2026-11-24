@@ -1,0 +1,48 @@
+{
+  "document_id": "ba646ef1-c743-58cf-9ccb-4bfaa8123847",
+  "document_type": "fee_receipt",
+  "document_label": "reference_unverified_synthetic",
+  "schema_verified": false,
+  "fields": {
+    "reference_code": {
+      "displayed": "BL26P - 0000642",
+      "normalized": "BL26P - 0000642",
+      "present": true
+    },
+    "issue_date": {
+      "displayed": "Ngày 16 tháng 10 năm 2026",
+      "normalized": "2026-10-16",
+      "present": true
+    },
+    "issuer.name": {
+      "displayed": "TRUNG TÂM PHỤC VỤ HÀNH CHÍNH CÔNG MẪU",
+      "normalized": "TRUNG TÂM PHỤC VỤ HÀNH CHÍNH CÔNG MẪU",
+      "present": true
+    },
+    "issuer.tax_code": {
+      "displayed": "9900000003",
+      "normalized": "9900000003",
+      "present": true
+    },
+    "recipient.name": {
+      "displayed": "CÔNG TY CỔ PHẦN ĐỐI TÁC KẾ TOÁN DEMO B",
+      "normalized": "CÔNG TY CỔ PHẦN ĐỐI TÁC KẾ TOÁN DEMO B",
+      "present": true
+    },
+    "totals.total_amount": {
+      "displayed": "500.000",
+      "normalized": "500000",
+      "present": true
+    }
+  },
+  "line_items": [
+    {
+      "name": "Lệ phí cấp giấy chứng nhận đăng ký kinh doanh (Mẫu)",
+      "unit": "Lần",
+      "quantity": "1",
+      "unit_price": "500000",
+      "amount": "500000"
+    }
+  ],
+  "relationships": {}
+}

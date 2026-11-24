@@ -1,0 +1,58 @@
+{
+  "document_id": "11efe85c-e9e2-5814-97a9-882286c879e8",
+  "document_type": "replacement_invoice",
+  "document_label": "reference_unverified_synthetic",
+  "schema_verified": false,
+  "fields": {
+    "reference_code": {
+      "displayed": "C26TAA - 00000342",
+      "normalized": "C26TAA - 00000342",
+      "present": true
+    },
+    "issue_date": {
+      "displayed": "Ngày 19 tháng 07 năm 2026",
+      "normalized": "2026-07-19",
+      "present": true
+    },
+    "issuer.name": {
+      "displayed": "CÔNG TY TNHH GIẢI PHÁP CÔNG NGHỆ MINH HỌA (DỮ LIỆU GIẢ LẬP)",
+      "normalized": "CÔNG TY TNHH GIẢI PHÁP CÔNG NGHỆ MINH HỌA (DỮ LIỆU GIẢ LẬP)",
+      "present": true
+    },
+    "issuer.tax_code": {
+      "displayed": "9901234567",
+      "normalized": "9901234567",
+      "present": true
+    },
+    "recipient.name": {
+      "displayed": "CÔNG TY TNHH KHÁCH HÀNG DOANH NGHIỆP MẪU A",
+      "normalized": "CÔNG TY TNHH KHÁCH HÀNG DOANH NGHIỆP MẪU A",
+      "present": true
+    },
+    "totals.total_amount": {
+      "displayed": "67.392.000",
+      "normalized": "67392000",
+      "present": true
+    }
+  },
+  "line_items": [
+    {
+      "name": "Dịch vụ tư vấn giải pháp chuyển đổi số doanh nghiệp",
+      "unit": "Gói",
+      "quantity": "4",
+      "unit_price": "14600000",
+      "amount": "58400000"
+    },
+    {
+      "name": "Dịch vụ bảo trì hệ thống hạ tầng mạng nội bộ",
+      "unit": "Lần",
+      "quantity": "1",
+      "unit_price": "4000000",
+      "amount": "4000000"
+    }
+  ],
+  "relationships": {
+    "reference_invoice_number": "00000341",
+    "reference_series": "C26TAA"
+  }
+}

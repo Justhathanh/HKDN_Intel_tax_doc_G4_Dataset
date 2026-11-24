@@ -1,0 +1,46 @@
+{
+  "dataset_id": "thtax-dataset-seed42",
+  "document_id": "d119ac8b-1cbc-525a-a45a-579ef988ad89",
+  "document_type": "vat_invoice",
+  "generator_version": "0.2.0",
+  "legal_profile_id": "ND254_2026_TT91_2026",
+  "legal_profile_version": "2026.07.01",
+  "xml_schema_version": null,
+  "thtax_core_contract_version": "1.0.0",
+  "synthetic": true,
+  "seed": 42,
+  "artifacts": {
+    "canonical.json": {
+      "mime_type": "application/json",
+      "sha256": "ef06a953b20bc4b0b24bf243f48269f5d8e0cce6c2bafb1de06c775b9cdf842b",
+      "bytes": 1883
+    },
+    "ground_truth.json": {
+      "mime_type": "application/json",
+      "sha256": "0ef58cad001632c2589256bc652d4785bc458f46c261cdbd29969641e509583f",
+      "bytes": 2578
+    },
+    "images/page-001.png": {
+      "mime_type": "image/png",
+      "sha256": "478668afa7af1deeacb041c3d1e6eadd64ae8d3731e2c4806d1d81d2c7fb7ea2",
+      "bytes": 220729
+    },
+    "images/page-001_blur.jpg": {
+      "mime_type": "image/jpeg",
+      "sha256": "19c5556531b36fd0428aa43388f56bccf5789b9fd7347e81bc75a169c7480f7c",
+      "bytes": 300659
+    },
+    "invoice.pdf": {
+      "mime_type": "application/pdf",
+      "sha256": "5e93944b14236a726fae706b3952b1466bd21984dad09e40902ca943cd469c16",
+      "bytes": 85598
+    },
+    "invoice_scan.pdf": {
+      "mime_type": "application/pdf",
+      "sha256": "6c379b044eb16ef986bfa8e72d4bed37f0fa2c2b5cec2cc85782892d19b22ff6",
+      "bytes": 301569
+    }
+  },
+  "validation_status": "valid_synthetic",
+  "validation_errors": []
+}

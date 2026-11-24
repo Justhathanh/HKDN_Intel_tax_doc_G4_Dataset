@@ -1,0 +1,30 @@
+{
+  "document_id": "7f72a2f5-a353-5d28-b661-61972a77e979",
+  "document_type": "tax_notice",
+  "title": "THÔNG BÁO VỀ VIỆC NỘP TIỀN THUẾ VÀ TIỀN CHẬM NỘP",
+  "issue_date": "2026-08-11",
+  "reference_code": "TB-542/CCT-QLN",
+  "issuer_name": "CHI CỤC THUẾ KHU VỰC MẪU (DỮ LIỆU GIẢ LẬP)",
+  "issuer_tax_code": "9900000002",
+  "issuer_address": "Quận 1, TP. Hồ Chí Minh",
+  "recipient_name": "CÔNG TY TNHH KHÁCH HÀNG DOANH NGHIỆP MẪU A",
+  "recipient_tax_code": "9911112222",
+  "recipient_address": "Số 456 Đường Võ Văn Tần, Phường 5, Quận 3, TP. Hồ Chí Minh",
+  "total_amount": "9000000",
+  "currency": "VND",
+  "schema_verified": false,
+  "synthetic": true,
+  "metadata": {
+    "deadline_date": "2026-12-31",
+    "notice_type": "Thông báo tiền thuế nợ"
+  },
+  "items": [
+    {
+      "name": "Tiền thuế TNDN tạm nộp theo tờ khai mẫu",
+      "unit": "Khoản",
+      "quantity": "1",
+      "unit_price": "9000000",
+      "amount": "9000000"
+    }
+  ]
+}

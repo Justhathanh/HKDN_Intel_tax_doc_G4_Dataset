@@ -16,6 +16,7 @@ from .factory import create_sample_invoice, mutate_invoice
 from .model import CanonicalInvoice, InvoiceLine, Party
 from .registry import DOCUMENT_TYPE_REGISTRY
 from .validation import validate_invoice
+from .extended_validation import validate_extended_document
 from .bundle_tools import add_xml_and_refresh_manifest, add_adjustment_scenario_xml, build_dataset_index, create_upload_archive
 
 
@@ -41,115 +42,6 @@ EXTENDED_GENERATOR_TYPES = {
     "fee_receipt",
     "pit_withholding",
 }
-
-
-def validate_extended_document(doc: Any) -> list[str]:
-    """Kiểm tra tính toàn vẹn cơ bản, không xác nhận tuân thủ pháp lý."""
-    errors: list[str] = []
-
-    if not doc.document_id:
-        errors.append("document_id is required")
-
-    if doc.document_type not in EXTENDED_GENERATOR_TYPES:
-        errors.append(
-            f"unsupported extended document type: {doc.document_type}"
-        )
-
-    if not doc.title.strip():
-        errors.append("title is required")
-
-    if not doc.reference_code.strip():
-        errors.append("reference_code is required")
-
-    try:
-        datetime.strptime(str(doc.issue_date), "%Y-%m-%d")
-    except (TypeError, ValueError):
-        errors.append("issue_date must use YYYY-MM-DD")
-
-    if not doc.issuer_name.strip():
-        errors.append("issuer_name is required")
-
-    if not doc.recipient_name.strip():
-        errors.append("recipient_name is required")
-
-    try:
-        total_amount = Decimal(str(doc.total_amount))
-
-        if total_amount < 0:
-            errors.append("total_amount cannot be negative")
-    except (InvalidOperation, TypeError, ValueError):
-        errors.append("total_amount must be a valid number")
-        return errors
-
-    if not doc.items:
-        errors.append("at least one line item is required")
-        return errors
-
-    item_total = Decimal("0")
-    all_amounts_present = True
-
-    for index, item in enumerate(doc.items):
-        for field in ("name", "unit", "quantity", "unit_price", "amount"):
-            if field not in item:
-                errors.append(f"items[{index}].{field} is required")
-
-        try:
-            if "quantity" in item and Decimal(str(item["quantity"])) <= 0:
-                errors.append(f"items[{index}].quantity must be positive")
-
-            if "unit_price" in item and Decimal(str(item["unit_price"])) < 0:
-                errors.append(
-                    f"items[{index}].unit_price cannot be negative"
-                )
-
-            if "amount" in item:
-                amount = Decimal(str(item["amount"]))
-
-                if amount < 0:
-                    errors.append(
-                        f"items[{index}].amount cannot be negative"
-                    )
-
-                item_total += amount
-            else:
-                all_amounts_present = False
-
-        except (InvalidOperation, TypeError, ValueError):
-            errors.append(f"items[{index}] contains an invalid numeric value")
-            all_amounts_present = False
-
-    if all_amounts_present:
-        metadata = doc.metadata or {}
-
-        # Chứng từ có VAT: dòng hàng đối chiếu với subtotal,
-        # tổng thanh toán đối chiếu với subtotal + VAT.
-        if "subtotal" in metadata and "vat_amount" in metadata:
-            try:
-                subtotal = Decimal(str(metadata["subtotal"]))
-                vat_amount = Decimal(str(metadata["vat_amount"]))
-
-                if item_total != subtotal:
-                    errors.append(
-                        "line_items total does not match subtotal"
-                    )
-
-                if subtotal + vat_amount != total_amount:
-                    errors.append(
-                        "subtotal + vat_amount does not match total_amount"
-                    )
-
-            except (InvalidOperation, TypeError, ValueError):
-                errors.append("Invalid subtotal or vat_amount")
-
-        else:
-            # Chứng từ không có VAT riêng.
-            if item_total != total_amount:
-                errors.append(
-                    "line_items total does not match total_amount"
-                )
-
-    return errors
-
 
 
 def _apply_company_to_vat(invoice: Any, company: dict, direction: str) -> None:

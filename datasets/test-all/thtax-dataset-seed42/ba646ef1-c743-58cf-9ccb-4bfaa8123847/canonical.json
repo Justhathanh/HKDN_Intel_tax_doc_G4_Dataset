@@ -1,0 +1,30 @@
+{
+  "document_id": "ba646ef1-c743-58cf-9ccb-4bfaa8123847",
+  "document_type": "fee_receipt",
+  "title": "BIÊN LAI THU TIỀN PHÍ, LỆ PHÍ",
+  "issue_date": "2026-10-16",
+  "reference_code": "BL26P - 0000642",
+  "issuer_name": "TRUNG TÂM PHỤC VỤ HÀNH CHÍNH CÔNG MẪU",
+  "issuer_tax_code": "9900000003",
+  "issuer_address": "TP. Hồ Chí Minh",
+  "recipient_name": "CÔNG TY CỔ PHẦN ĐỐI TÁC KẾ TOÁN DEMO B",
+  "recipient_tax_code": "9922223333",
+  "recipient_address": "Số 79 Đường Điện Biên Phủ, Quận Bình Thạnh, TP. Hồ Chí Minh",
+  "total_amount": "500000",
+  "currency": "VND",
+  "schema_verified": false,
+  "synthetic": true,
+  "metadata": {
+    "serial": "BL26P",
+    "receipt_number": "0000642"
+  },
+  "items": [
+    {
+      "name": "Lệ phí cấp giấy chứng nhận đăng ký kinh doanh (Mẫu)",
+      "unit": "Lần",
+      "quantity": "1",
+      "unit_price": "500000",
+      "amount": "500000"
+    }
+  ]
+}
