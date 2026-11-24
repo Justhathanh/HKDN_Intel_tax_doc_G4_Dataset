@@ -494,11 +494,17 @@ def create_batch(
                         original_total = original.total_amount
                         original_series = original.metadata.get("series", "")
                         original_invoice_number = original.metadata.get("invoice_number", "")
-                        original.metadata["scenario"] = {
+                        original.metadata.update({
                             "scenario_id": scenario_id,
                             "role": "original",
-                            "related_document_type": type_key,
-                        }
+                            "related_document_id": doc.document_id,
+                            "root_invoice_type": original_type,
+                            "scenario": {
+                                "scenario_id": scenario_id,
+                                "role": "original",
+                                "related_document_type": type_key,
+                            },
+                        })
 
                     # Preserve identical seller/buyer parties across the linked documents.
                     doc.issuer_name = original_seller.name
