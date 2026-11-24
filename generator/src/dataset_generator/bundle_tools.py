@@ -132,7 +132,7 @@ def create_upload_archive(batch_dir: Path, document_ids: set[str] | None = None)
                 source = document_dir / relative
                 if source.suffix.lower() not in {".pdf", ".xml"}:
                     continue
-                if source.name in {"invoice_scan.pdf"} or "corrupted" in source.name:
+                if source.name == "invoice_scan.pdf" or source.name.endswith("_scan.pdf") or "corrupted" in source.name:
                     continue
                 if source.is_file():
                     archive_name = (Path("documents") / document_id / source.name).as_posix()
