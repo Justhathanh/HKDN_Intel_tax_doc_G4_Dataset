@@ -15,7 +15,7 @@ from .factory import create_sample_invoice, mutate_invoice
 from .model import Party
 from .registry import DOCUMENT_TYPE_REGISTRY
 from .validation import validate_invoice
-from .bundle_tools import add_xml_and_refresh_manifest, build_dataset_index, create_upload_archive
+from .bundle_tools import add_xml_and_refresh_manifest, add_adjustment_scenario_xml, build_dataset_index, create_upload_archive
 
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -192,6 +192,34 @@ def _apply_company_to_extended(doc: Any, company: dict, direction: str) -> None:
         doc.issuer_address = company.get("address", "")
 
 
+def _short_document_base(document_type: str, seed: int, role: str | None = None) -> str:
+    prefixes = {
+        "vat_invoice": "tax_invoice",
+        "sales_invoice": "sales_invoice",
+        "adjustment_invoice": "adjustment_invoice",
+        "replacement_invoice": "replacement_invoice",
+        "state_budget_payment": "state_budget_payment",
+        "tax_notice": "tax_notice",
+        "fee_receipt": "fee_receipt",
+        "pit_withholding": "pit_withholding",
+    }
+    prefix = prefixes.get(document_type, document_type)
+    code = seed % 900 + 100
+    suffix = f"_{role}" if role else ""
+    return f"{prefix}{code}{suffix}"
+
+
+def _rename_pdf_artifacts(document_dir: Path, base_name: str, primary_pdf: str) -> None:
+    source = document_dir / primary_pdf
+    target = document_dir / f"{base_name}.pdf"
+    if source.exists() and source != target:
+        source.rename(target)
+    scan = document_dir / "invoice_scan.pdf"
+    scan_target = document_dir / f"{base_name}_scan.pdf"
+    if scan.exists() and scan != scan_target:
+        scan.rename(scan_target)
+
+
 def create_batch(
     company: dict,
     document_types: list[str],
@@ -265,7 +293,9 @@ def create_batch(
 
                 output_dir = documents_dir / invoice.document_id
                 write_bundle(invoice, output_dir)
-                add_xml_and_refresh_manifest(output_dir)
+                short_base = _short_document_base(type_key, current_seed)
+                _rename_pdf_artifacts(output_dir, short_base, "invoice.pdf")
+                add_xml_and_refresh_manifest(output_dir, f"{short_base}.xml")
 
                 record = {
                     "document_id": invoice.document_id,
@@ -278,6 +308,7 @@ def create_batch(
 
             else:
                 scenario_original_record = None
+                scenario_id = None
                 doc = create_extended_document(type_key, seed=current_seed)
                 _apply_company_to_extended(doc, company, direction)
 
@@ -357,7 +388,10 @@ def create_batch(
                         )
                     original_dir = documents_dir / original.document_id
                     write_bundle(original, original_dir)
-                    add_xml_and_refresh_manifest(original_dir)
+                    scenario_base = _short_document_base(type_key, current_seed)
+                    root_base = f"{scenario_base}_root"
+                    _rename_pdf_artifacts(original_dir, root_base, "invoice.pdf")
+                    add_xml_and_refresh_manifest(original_dir, f"{root_base}.xml")
                     scenario_original_record = {
                         "document_id": original.document_id,
                         "document_type": "vat_invoice",
@@ -379,7 +413,22 @@ def create_batch(
 
                 output_dir = documents_dir / doc.document_id
                 write_extended_bundle(doc, output_dir, seed=current_seed)
-                add_xml_and_refresh_manifest(output_dir)
+                if scenario_id:
+                    scenario_base = _short_document_base(type_key, current_seed)
+                    adjusted_base = f"{scenario_base}_adjusted"
+                    _rename_pdf_artifacts(output_dir, adjusted_base, "document.pdf")
+                    add_adjustment_scenario_xml(
+                        batch_dir,
+                        original.document_id,
+                        doc.document_id,
+                        scenario_id,
+                        f"{scenario_base}.xml",
+                        type_key,
+                    )
+                else:
+                    short_base = _short_document_base(type_key, current_seed)
+                    _rename_pdf_artifacts(output_dir, short_base, "document.pdf")
+                    add_xml_and_refresh_manifest(output_dir, f"{short_base}.xml")
 
                 record = {
                     "document_id": doc.document_id,
