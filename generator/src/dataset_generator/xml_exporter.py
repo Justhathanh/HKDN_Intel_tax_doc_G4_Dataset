@@ -51,7 +51,7 @@ def canonical_to_xml(document: dict[str, Any]) -> bytes:
         if value is not None:
             _add(identity, key, value)
 
-    metadata = document.get("metadata") or {}
+    metadata = document.get("metadata") or document.get("extra") or {}
     if metadata:
         meta_node = ET.SubElement(root, "Metadata")
         for key in sorted(metadata):
