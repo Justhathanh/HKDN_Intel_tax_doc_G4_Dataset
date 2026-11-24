@@ -93,3 +93,25 @@ def test_vat_breakdown_rejects_inconsistent_total():
         )
     )
     assert "subtotal + vat_amount does not match total_amount" in errors
+
+
+def test_sales_adjustment_subtotal_without_vat_is_valid():
+    errors = validate_extended_document(
+        make_document(
+            document_type="adjustment_invoice",
+            total_amount=Decimal("110"),
+            metadata={"subtotal": Decimal("110"), "tax_regime": "Trực tiếp trên doanh thu"},
+        )
+    )
+    assert errors == []
+
+
+def test_subtotal_without_vat_must_match_total():
+    errors = validate_extended_document(
+        make_document(
+            document_type="adjustment_invoice",
+            total_amount=Decimal("111"),
+            metadata={"subtotal": Decimal("110")},
+        )
+    )
+    assert "subtotal does not match total_amount" in errors
