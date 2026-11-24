@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import re
+import shutil
 import uuid
 from pathlib import Path
 
@@ -92,6 +93,28 @@ def get_batch_manifests() -> list[Path]:
     )
 
 
+def delete_batch_files(manifest_path: Path) -> None:
+    """Delete one generated batch and its ZIPs, restricted to OUTPUT_ROOT."""
+    manifest_path = manifest_path.resolve()
+    output_root = OUTPUT_ROOT.resolve()
+    batch_dir = manifest_path.parent
+    try:
+        batch_dir.relative_to(output_root)
+    except ValueError as exc:
+        raise ValueError("Batch path is outside the dataset storage directory") from exc
+
+    if manifest_path.name != "batch_manifest.json" or not batch_dir.name.startswith("BATCH-"):
+        raise ValueError("Invalid batch manifest path")
+    if not manifest_path.is_file():
+        raise FileNotFoundError("Batch manifest no longer exists")
+
+    shutil.rmtree(batch_dir)
+    for suffix in (".zip", "-upload.zip"):
+        archive = batch_dir.with_name(batch_dir.name + suffix)
+        if archive.is_file():
+            archive.unlink()
+
+
 def render_generate_tab(active: list[dict]) -> None:
     left, right = st.columns([1.1, 1])
 
@@ -164,6 +187,17 @@ def render_generate_tab(active: list[dict]) -> None:
                     f"Trạng thái: {spec.status} · "
                     f"{'Core/MVP' if spec.in_mvp else 'Extended'}"
                 )
+
+        adjustment_original_type = "vat_invoice"
+        if "adjustment_invoice" in selected_types:
+            adjustment_original_type = st.selectbox(
+                "Loại hóa đơn gốc cho kịch bản điều chỉnh",
+                options=["vat_invoice", "sales_invoice"],
+                format_func=lambda value: (
+                    "Hóa đơn GTGT" if value == "vat_invoice" else "Hóa đơn bán hàng"
+                ),
+                help="Hóa đơn gốc và trạng thái sau điều chỉnh sẽ giữ cùng loại. Sales Invoice là dữ liệu Extended chưa xác minh schema pháp lý.",
+            )
 
         direction = st.selectbox(
             "Vai trò công ty mẫu trong hóa đơn",
@@ -257,6 +291,7 @@ def render_generate_tab(active: list[dict]) -> None:
                     seed=int(seed),
                     include_negative=include_negative,
                     allow_unverified=allow_unverified,
+                    adjustment_original_type=adjustment_original_type,
                 )
 
                 st.success("Đã tạo dataset.")
@@ -455,6 +490,24 @@ def render_output_tab() -> None:
                         key=f"dl-upload-{batch_id}",
                         help="Chỉ chứa PDF/XML đầu vào; không kèm Ground Truth.",
                     )
+
+                st.divider()
+                confirm_delete = st.checkbox(
+                    "Tôi xác nhận xóa vĩnh viễn batch này khỏi máy",
+                    key=f"confirm-delete-{batch_id}",
+                )
+                if st.button(
+                    "Xóa batch",
+                    key=f"delete-batch-{batch_id}",
+                    type="secondary",
+                    disabled=not confirm_delete,
+                ):
+                    try:
+                        delete_batch_files(manifest)
+                        st.success(f"Đã xóa batch {batch_id} và các file ZIP.")
+                        st.rerun()
+                    except (OSError, ValueError) as exc:
+                        st.error(f"Không thể xóa batch: {exc}")
 
                 validation_report = (
                     manifest.parent / "validation_report.json"
