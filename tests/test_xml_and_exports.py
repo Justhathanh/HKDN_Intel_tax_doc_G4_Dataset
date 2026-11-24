@@ -19,6 +19,7 @@ def test_canonical_xml_is_well_formed_and_escapes_text():
         "buyer": {"name": "Buyer", "tax_code": ""},
         "lines": [{"name": "Item <one>", "quantity": "2", "amount": "100"}],
         "totals": {"subtotal": "100", "grand_total": "100"},
+        "metadata": {"scenario_expected": {"final_total": "110"}},
     }
 
     root = ET.fromstring(canonical_to_xml(payload))
@@ -26,6 +27,7 @@ def test_canonical_xml_is_well_formed_and_escapes_text():
     assert root.find("Parties/Seller/name").text == "A & B"
     assert root.find("LineItems/Line/name").text == "Item <one>"
     assert root.attrib["schemaStatus"] == "unverified"
+    assert root.findtext("Metadata/scenario_expected/final_total") == "110"
 
 
 def test_add_xml_refreshes_artifact_hashes(tmp_path):
@@ -116,6 +118,10 @@ def test_adjustment_scenario_links_original_and_signed_delta(tmp_path, monkeypat
     original = next(item for item in records if item.get("scenario_role") == "original")
     adjustment = next(item for item in records if item["document_type"] == "adjustment_invoice")
     assert adjustment["related_document_id"] == original["document_id"]
+    original_gt = json.loads(
+        (batch_dir / "documents" / original["document_id"] / "ground_truth.json").read_text(encoding="utf-8")
+    )
+    assert original_gt["relationships"]["scenario_id"] == adjustment["scenario_id"]
 
     doc_dir = batch_dir / "documents" / adjustment["document_id"]
     canonical = json.loads((doc_dir / "canonical.json").read_text(encoding="utf-8"))
