@@ -448,7 +448,14 @@ def create_batch(
                     invoice.series = existing["series"]
                     invoice.invoice_number = existing["invoice_number"]
 
-            errors = validate_invoice(invoice)
+            seen_negative_refs = {
+                (item["series"], item["invoice_number"])
+                for item in document_records
+                if item.get("document_type") == "vat_invoice"
+                and item.get("series")
+                and item.get("invoice_number")
+            }
+            errors = validate_invoice(invoice, seen_references=seen_negative_refs)
             write_bundle(
                 invoice,
                 vat_dir / f"{case}-{invoice.document_id}",
