@@ -76,6 +76,9 @@ def add_adjustment_scenario_xml(
         "root": root_document_id,
         "adjusted": adjusted_document_id,
     }
+    if (adjusted_dir / "adjusted_state.json").is_file():
+        manifest["scenario_snapshot_artifact"] = "adjusted_state.json"
+        manifest["artifact_consistency"] = "generated_from_scenario_canonical_snapshot"
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
     return xml_path
 
