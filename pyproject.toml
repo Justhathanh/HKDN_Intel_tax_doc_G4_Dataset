@@ -7,10 +7,17 @@ name = "thtax-synthetic-invoice-generator"
 version = "0.1.0"
 description = "Synthetic Vietnamese tax invoice dataset generator for THTAX testing"
 requires-python = ">=3.11"
-dependencies = ["reportlab>=4.2"]
+dependencies = [
+    "reportlab>=4.2",
+    "PyMuPDF>=1.24",
+    "numpy>=1.26",
+    "Pillow>=10.0",
+    "streamlit>=1.38",
+]
 
 [project.scripts]
 thtax-dataset = "dataset_generator.cli:main"
+thtax-dataset-web = "dataset_generator.web_app:main"
 
 [tool.setuptools.packages.find]
 where = ["generator/src"]

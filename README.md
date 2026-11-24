@@ -116,3 +116,51 @@ python -m pytest -v
 ## Scope boundary
 
 This repository generates synthetic source documents and labels. It does not issue real invoices, sign documents, connect to tax authority systems, or replace THTAX ingestion/backend.
+
+
+## Web UI — THTAX Dataset Studio
+
+Giao diện local để chọn công ty, loại chứng từ và quản lý các đợt generate.
+
+```powershell
+# Kích hoạt venv trước
+python -m pip install -e .
+streamlit run generator/src/dataset_generator/web_app.py
+```
+
+Mở URL local mà Streamlit hiển thị (thường là `http://localhost:8501`).
+
+### Cách sử dụng
+
+1. Mở tab **Tạo dữ liệu**, chọn một trong ba công ty mẫu.
+2. Chọn loại chứng từ (hiện chỉ `vat_invoice` được bật) và chiều hóa đơn: đầu vào hoặc đầu ra.
+3. Chọn số lượng, seed và có/không tạo negative cases.
+4. Bấm **Tạo dataset**, tải ZIP ngay tại giao diện.
+5. Tab **Quản lý công ty** cho phép thêm công ty và lưu trữ/kích hoạt công ty.
+6. Tab **Kho dữ liệu** liệt kê các batch đã tạo.
+
+Ba công ty mặc định là hồ sơ giả lập để kiểm thử UI, không đại diện cho ba khách hàng Pilot thực tế. Cấu hình công ty được lưu tại `configs/companies.json`.
+
+### Cấu trúc output
+
+```text
+datasets/
+└── companies/
+    └── <company_id>/
+        └── <document_type>/
+            └── <direction>/  # incoming hoặc outgoing
+                └── <batch_id>/
+                ├── batch_manifest.json
+                ├── <document_id>/
+                │   ├── invoice.pdf
+                │   ├── invoice_scan.pdf
+                │   ├── canonical.json
+                │   ├── ground_truth.json
+                │   ├── manifest.json
+                │   └── images/
+                └── ...
+```
+
+Mỗi batch có ZIP cùng tên ở cạnh thư mục batch. Không đưa dữ liệu Pilot thật vào thư mục synthetic này. Dữ liệu thật cần một kho riêng, phân quyền theo client/engagement, giữ nguyên file nguồn và có quy trình phê duyệt xử lý.
+
+**Giới hạn hiện tại:** Web UI chỉ bật loại chứng từ `supported` trong registry (hiện là `vat_invoice`). Các loại `needs_review`/`planned` không được mở cho đến khi schema và quy tắc nghiệp vụ được xác minh. PDF layout và biến thể OCR hiện tại vẫn là phiên bản MVP; giao diện quản lý không đồng nghĩa đã có nhiều layout thực tế.
