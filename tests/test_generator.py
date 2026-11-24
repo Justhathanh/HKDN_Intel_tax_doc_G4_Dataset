@@ -3,7 +3,7 @@ import subprocess
 import sys
 from decimal import Decimal
 from pathlib import Path
-import fitz 
+import pymupdf
 import pytest
 
 from dataset_generator.exporters import write_bundle, write_corrupted_bundle
@@ -162,7 +162,7 @@ def test_g4t84_pdf_watermark_and_text_layer(tmp_path: Path):
     out_dir = tmp_path / inv.document_id
     write_bundle(inv, out_dir)
 
-    with fitz.open(out_dir / "invoice.pdf") as doc:
+    with pymupdf.open(out_dir / "invoice.pdf") as doc:
         full_text = "\n".join(page.get_text() for page in doc)
 
     assert "DỮ LIỆU GIẢ LẬP - KHÔNG CÓ GIÁ TRỊ PHÁP LÝ" in full_text

@@ -7,7 +7,7 @@ import random
 from datetime import datetime
 from decimal import Decimal
 from pathlib import Path
-import fitz  # PyMuPDF
+import pymupdf
 import numpy as np
 from PIL import Image, ImageFilter
 from reportlab.lib import colors
@@ -272,7 +272,7 @@ def export_images_and_scan_pdf(pdf_path: Path, out_dir: Path, seed: int = 42):
     images_dir = out_dir / "images"
     images_dir.mkdir(parents=True, exist_ok=True)
 
-    doc = fitz.open(pdf_path)
+    doc = pymupdf.open(pdf_path)
     page = doc[0]
     pix = page.get_pixmap(dpi=200)
     clean_img = Image.open(io.BytesIO(pix.tobytes("png"))).convert("RGB")
@@ -315,7 +315,7 @@ def _build_manifest(
                 "bytes": p.stat().st_size,
             }
     manifest = {
-        "dataset_id": out_dir.parent.name,
+        "dataset_id": out_dir.parent.parent.name if out_dir.parent.name == "documents" else out_dir.parent.name,
         "document_id": document_id,
         "document_type": document_type,
         "generator_version": generator_version,
@@ -366,6 +366,7 @@ def write_bundle(inv: CanonicalInvoice, out_dir: Path, generator_version="0.2.0"
         "expected_validation_errors": validation_errors or [],
         "fields": gt_fields,
         "line_items": inv.to_dict()["lines"],
+        "relationships": inv.extra.get("scenario", {}),
     }
     (out_dir / "ground_truth.json").write_text(json.dumps(gt, ensure_ascii=False, indent=2), encoding="utf-8")
     _build_manifest(out_dir, inv.document_id, inv.document_type, qa_label, seed, generator_version, validation_errors)

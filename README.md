@@ -136,8 +136,8 @@ Mở URL local mà Streamlit hiển thị (thường là `http://localhost:8501`
 2. Chọn loại chứng từ (hiện chỉ `vat_invoice` được bật) và chiều hóa đơn: đầu vào hoặc đầu ra.
 3. Chọn số lượng, seed và có/không tạo negative cases.
 4. Bấm **Tạo dataset**, tải ZIP ngay tại giao diện.
-5. Tab **Quản lý công ty** cho phép thêm công ty và lưu trữ/kích hoạt công ty.
-6. Tab **Kho dữ liệu** liệt kê các batch đã tạo.
+5. Tab **Quản lý công ty** cho phép thêm, lưu trữ/kích hoạt hoặc xóa vĩnh viễn một công ty cùng toàn bộ batch/ZIP thuộc công ty đó.
+6. Tab **Kho dữ liệu** liệt kê các batch; chọn một hoặc nhiều batch bằng checkbox rồi xác nhận **Xóa batch đã chọn** để xóa hàng loạt.
 
 Ba công ty mặc định là hồ sơ giả lập để kiểm thử UI, không đại diện cho ba khách hàng Pilot thực tế. Cấu hình công ty được lưu tại `configs/companies.json`.
 
@@ -164,3 +164,19 @@ datasets/
 Mỗi batch có ZIP cùng tên ở cạnh thư mục batch. Không đưa dữ liệu Pilot thật vào thư mục synthetic này. Dữ liệu thật cần một kho riêng, phân quyền theo client/engagement, giữ nguyên file nguồn và có quy trình phê duyệt xử lý.
 
 **Giới hạn hiện tại:** Web UI chỉ bật loại chứng từ `supported` trong registry (hiện là `vat_invoice`). Các loại `needs_review`/`planned` không được mở cho đến khi schema và quy tắc nghiệp vụ được xác minh. PDF layout và biến thể OCR hiện tại vẫn là phiên bản MVP; giao diện quản lý không đồng nghĩa đã có nhiều layout thực tế.
+
+
+## XML, linked scenarios and export profiles
+
+The Dataset Studio now writes a well-formed internal XML representation from each canonical document. This is an integration-test format only; it is **not** a legally verified e-invoice XML schema. Manifest fields explicitly retain `xml_schema_verified: false` and `xml_schema_version: null`.
+
+Adjustment samples can use either a VAT invoice or a Sales Invoice as the original document; the selected type is preserved in the linked adjusted snapshot. Replacement samples currently retain a VAT invoice as the original. Adjustment scenarios carry a signed delta; replacement scenarios supersede the original and are not additive.
+
+Each Batch produces two archives:
+- `<batch_id>.zip`: Full Dataset, including source files, OCR derivatives, Canonical JSON, Ground Truth, manifests and reports.
+- `<batch_id>-upload.zip`: Upload Dataset, containing only original PDF/XML inputs and excluding Ground Truth, canonical labels, scan derivatives and corrupted fixtures.
+
+See [Dataset Export Contract](docs/DATASET_EXPORT_CONTRACT.md) for the artifact and scenario contract.
+
+
+Generated batches can be selected and deleted in bulk from the **Kho dữ liệu** tab. Deletion removes only selected batch directories and their adjacent Full/Upload ZIP archives. The **Quản lý công ty** tab also supports permanent company deletion, which removes that company profile from `configs/companies.json` and its entire local dataset directory. Both operations require explicit confirmation and validate paths under the configured data root. Generated datasets are excluded from Git by `.gitignore`.
