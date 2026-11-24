@@ -8,21 +8,10 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any
 
-from .xml_exporter import write_canonical_xml
+from .xml_exporter import write_canonical_xml, write_adjustment_scenario_xml
 
 
-def add_xml_and_refresh_manifest(document_dir: Path) -> Path:
-    canonical_path = document_dir / "canonical.json"
-    if not canonical_path.is_file():
-        raise FileNotFoundError(f"Missing canonical.json in {document_dir}")
-
-    canonical: dict[str, Any] = json.loads(canonical_path.read_text(encoding="utf-8"))
-    xml_path = document_dir / "document.xml"
-    write_canonical_xml(canonical, xml_path)
-
-    # Parse back to ensure the generated XML is well-formed.
-    ET.parse(xml_path)
-
+def _refresh_manifest(document_dir: Path) -> None:
     manifest_path = document_dir / "manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     artifacts = {}
@@ -30,23 +19,63 @@ def add_xml_and_refresh_manifest(document_dir: Path) -> Path:
         if path.is_file() and path.name != "manifest.json":
             relative = path.relative_to(document_dir).as_posix()
             mime, _ = mimetypes.guess_type(path.name)
+            if path.suffix.lower() == ".xml":
+                mime = "application/xml"
             artifacts[relative] = {
                 "mime_type": mime or "application/octet-stream",
                 "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
                 "bytes": path.stat().st_size,
             }
-
     manifest["artifacts"] = artifacts
-    manifest["xml_artifact"] = "document.xml"
     manifest["xml_format"] = "thtax-synthetic-internal-v1"
     manifest["xml_schema_version"] = None
     manifest["xml_schema_verified"] = False
     manifest["xml_well_formed"] = True
     manifest["artifact_consistency"] = "generated_from_canonical_json"
-    manifest_path.write_text(
-        json.dumps(manifest, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
+    manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def add_xml_and_refresh_manifest(document_dir: Path, filename: str = "document.xml") -> Path:
+    canonical_path = document_dir / "canonical.json"
+    if not canonical_path.is_file():
+        raise FileNotFoundError(f"Missing canonical.json in {document_dir}")
+    canonical = json.loads(canonical_path.read_text(encoding="utf-8"))
+    xml_path = document_dir / filename
+    write_canonical_xml(canonical, xml_path)
+    ET.parse(xml_path)
+    _refresh_manifest(document_dir)
+    manifest_path = document_dir / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["xml_artifact"] = filename
+    manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
+    return xml_path
+
+
+def add_adjustment_scenario_xml(
+    batch_dir: Path,
+    root_document_id: str,
+    adjusted_document_id: str,
+    scenario_id: str,
+    filename: str,
+    scenario_type: str = "adjustment_invoice",
+) -> Path:
+    documents_dir = batch_dir / "documents"
+    root_dir = documents_dir / root_document_id
+    adjusted_dir = documents_dir / adjusted_document_id
+    root_doc = json.loads((root_dir / "canonical.json").read_text(encoding="utf-8"))
+    adjusted_doc = json.loads((adjusted_dir / "canonical.json").read_text(encoding="utf-8"))
+    xml_path = adjusted_dir / filename
+    write_adjustment_scenario_xml(root_doc, adjusted_doc, scenario_id, xml_path, scenario_type)
+    ET.parse(xml_path)
+    _refresh_manifest(adjusted_dir)
+    manifest_path = adjusted_dir / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["xml_artifact"] = filename
+    manifest["scenario_xml_structure"] = {
+        "root": root_document_id,
+        "adjusted": adjusted_document_id,
+    }
+    manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
     return xml_path
 
 
