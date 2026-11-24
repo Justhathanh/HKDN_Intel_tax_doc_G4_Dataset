@@ -39,12 +39,14 @@ Contains only original PDF/XML inputs for valid generated document bundles. It e
 Registry status remains independent from generator availability. A generated Extended sample is still marked unverified until its schema and business rules have been reviewed. Core/Pilot and Extended must not be conflated in reports.
 
 
-## Short filenames and adjustment scenario pair
+## Document folders and short filenames
 
-Generated source filenames use a document-type prefix and a reproducible three-digit code derived from the batch seed, for example `tax_invoice387.pdf` and `tax_invoice387.xml`. The same code is reused for both members of a linked adjustment/replacement scenario:
-- `adjustment_invoice387_root.pdf`: original invoice PDF.
-- `adjustment_invoice387_adjusted.pdf`: adjusted invoice PDF.
-- `adjustment_invoice387_root.xml`: standalone original XML.
-- `adjustment_invoice387.xml`: one scenario XML containing both `Root` and `Adjusted` document nodes.
+Both Full Dataset and Upload Dataset ZIPs expose one top-level folder per document directly under `documents/`. The folder name is based on the document type and its random three-digit human-lookup code, for example `tax_invoice387/` or `sales_invoice142/`. Related artifacts in that document bundle use the same prefix and code, including PDF, XML, scan PDF and page images.
 
-The combined scenario XML is stored with the adjusted document and its artifact entry is recorded in that document's manifest. The Windows Explorer "Type" label can show the default associated application (for example Microsoft Edge); verify the actual file extension is `.xml` and inspect the XML declaration/content rather than relying on that label.
+The stable identity remains `document_id`, not the filename code. Each per-document `manifest.json`, the batch manifest and `dataset_index.json` retain the document ID and map it to `folder_name` and `relative_path`. The three-digit code is randomly selected from 001–999, is not derived from the batch seed, and collisions across documents or batches are allowed.
+
+If two documents in the same batch have the same type and random code, the folder name receives a collision suffix such as `tax_invoice027__2/`. The code itself remains unchanged and collisions remain allowed; the suffix only prevents files from overwriting each other.
+
+For adjustment/replacement scenarios, each document ID has its own folder. The original VAT invoice is stored in a `tax_invoiceNNN/` folder with `tax_invoiceNNN_root.pdf` and `tax_invoiceNNN_root.xml`. The related adjustment/replacement document is stored in its own type folder, such as `adjustment_invoiceNNN/`, with its role-specific PDF and scenario XML. Both folders share the scenario's three-digit lookup code. The batch manifest links them using `scenario_id`, `document_id` and `related_document_id`.
+
+The combined scenario XML is stored with the adjustment/replacement document and its artifact entry is recorded in that document's manifest. The Windows Explorer "Type" label can show the default associated application (for example Microsoft Edge); verify the actual file extension and inspect the XML declaration/content rather than relying on that label.
