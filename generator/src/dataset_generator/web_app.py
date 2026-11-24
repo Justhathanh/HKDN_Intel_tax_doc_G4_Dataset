@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import re
+import shutil
 import uuid
 from pathlib import Path
 
@@ -92,6 +93,74 @@ def get_batch_manifests() -> list[Path]:
     )
 
 
+def _safe_company_dir(company_id: str) -> Path:
+    if not re.fullmatch(r"[a-z0-9][a-z0-9-]{0,99}", company_id):
+        raise ValueError("Invalid company ID")
+    output_root = OUTPUT_ROOT.resolve()
+    company_dir = (OUTPUT_ROOT / company_id).resolve()
+    try:
+        company_dir.relative_to(output_root)
+    except ValueError as exc:
+        raise ValueError("Company path is outside the dataset storage directory") from exc
+    if company_dir.parent != output_root or company_dir.name != company_id:
+        raise ValueError("Invalid company storage path")
+    return company_dir
+
+
+def delete_batch_files(manifest_path: Path) -> None:
+    """Delete one generated batch and its adjacent ZIP archives."""
+    manifest_path = manifest_path.resolve()
+    output_root = OUTPUT_ROOT.resolve()
+    batch_dir = manifest_path.parent
+    try:
+        batch_dir.relative_to(output_root)
+    except ValueError as exc:
+        raise ValueError("Batch path is outside the dataset storage directory") from exc
+
+    if manifest_path.name != "batch_manifest.json" or not batch_dir.name.startswith("BATCH-"):
+        raise ValueError("Invalid batch manifest path")
+    if not manifest_path.is_file():
+        raise FileNotFoundError("Batch manifest no longer exists")
+
+    shutil.rmtree(batch_dir)
+    for suffix in (".zip", "-upload.zip"):
+        archive = batch_dir.with_name(batch_dir.name + suffix)
+        if archive.is_file():
+            archive.unlink()
+
+
+def delete_selected_batches(manifest_paths: list[Path]) -> int:
+    """Delete selected batches, validating all paths before deleting any."""
+    resolved = [Path(path).resolve() for path in manifest_paths]
+    if len(set(resolved)) != len(resolved):
+        raise ValueError("Duplicate batch selection")
+    for path in resolved:
+        batch_dir = path.parent
+        try:
+            batch_dir.relative_to(OUTPUT_ROOT.resolve())
+        except ValueError as exc:
+            raise ValueError("A selected batch is outside the dataset storage directory") from exc
+        if path.name != "batch_manifest.json" or not batch_dir.name.startswith("BATCH-") or not path.is_file():
+            raise ValueError(f"Invalid or missing batch manifest: {path}")
+    for path in resolved:
+        delete_batch_files(path)
+    return len(resolved)
+
+
+def delete_company(company_id: str, companies: list[dict]) -> list[dict]:
+    """Permanently delete one company profile and all generated local datasets."""
+    company_dir = _safe_company_dir(company_id)
+    remaining = [company for company in companies if company.get("id") != company_id]
+    if len(remaining) == len(companies):
+        raise ValueError("Company does not exist in configuration")
+    if company_dir.exists():
+        if not company_dir.is_dir():
+            raise ValueError("Company storage path is not a directory")
+        shutil.rmtree(company_dir)
+    save_companies(remaining)
+    return remaining
+
+
 def render_generate_tab(active: list[dict]) -> None:
     left, right = st.columns([1.1, 1])
 
@@ -165,6 +234,17 @@ def render_generate_tab(active: list[dict]) -> None:
                     f"{'Core/MVP' if spec.in_mvp else 'Extended'}"
                 )
 
+        adjustment_original_type = "vat_invoice"
+        if "adjustment_invoice" in selected_types:
+            adjustment_original_type = st.selectbox(
+                "Loại hóa đơn gốc cho kịch bản điều chỉnh",
+                options=["vat_invoice", "sales_invoice"],
+                format_func=lambda value: (
+                    "Hóa đơn GTGT" if value == "vat_invoice" else "Hóa đơn bán hàng"
+                ),
+                help="Hóa đơn gốc và trạng thái sau điều chỉnh sẽ giữ cùng loại. Sales Invoice là dữ liệu Extended chưa xác minh schema pháp lý.",
+            )
+
         direction = st.selectbox(
             "Vai trò công ty mẫu trong hóa đơn",
             ["incoming", "outgoing"],
@@ -225,10 +305,16 @@ def render_generate_tab(active: list[dict]) -> None:
     )
 
     if selected_types:
-        total = len(selected_types) * int(count)
+        requested_total = len(selected_types) * int(count)
+        scenario_originals = sum(
+            1 for key in selected_types
+            if key in {"adjustment_invoice", "replacement_invoice"}
+        ) * int(count)
+        total = requested_total + scenario_originals
         st.info(
-            f"Dự kiến tạo {total} chứng từ hợp lệ "
-            f"({count} chứng từ × {len(selected_types)} loại)."
+            f"Dự kiến tạo {total} chứng từ gốc/liên kết "
+            f"({requested_total} chứng từ được chọn + "
+            f"{scenario_originals} hóa đơn gốc cho scenario)."
         )
     else:
         st.info("Hãy chọn ít nhất một loại chứng từ.")
@@ -251,6 +337,7 @@ def render_generate_tab(active: list[dict]) -> None:
                     seed=int(seed),
                     include_negative=include_negative,
                     allow_unverified=allow_unverified,
+                    adjustment_original_type=adjustment_original_type,
                 )
 
                 st.success("Đã tạo dataset.")
@@ -261,12 +348,25 @@ def render_generate_tab(active: list[dict]) -> None:
                     st.code(str(archive))
 
                 st.download_button(
-                    "Tải dataset ZIP",
+                    "Tải Full Dataset (kèm Ground Truth)",
                     data=archive.read_bytes(),
                     file_name=archive.name,
                     mime="application/zip",
                     use_container_width=True,
                 )
+
+                upload_archive = archive.with_name(
+                    archive.stem + "-upload.zip"
+                )
+                if upload_archive.exists():
+                    st.download_button(
+                        "Tải Upload Dataset (chỉ PDF/XML đầu vào)",
+                        data=upload_archive.read_bytes(),
+                        file_name=upload_archive.name,
+                        mime="application/zip",
+                        use_container_width=True,
+                        help="Không chứa Ground Truth, canonical data hoặc file scan/negative.",
+                    )
 
             except Exception as exc:
                 st.error(f"Không thể tạo dataset: {exc}")
@@ -303,6 +403,28 @@ def render_companies_tab(companies: list[dict]) -> None:
                 company["active"] = not company.get("active", True)
                 save_companies(companies)
                 st.rerun()
+
+            company_manifests = [
+                path for path in get_batch_manifests()
+                if path.parent.parent.name == company["id"]
+            ]
+            st.caption(f"Số batch đang lưu: {len(company_manifests)}")
+            confirm_company_delete = st.checkbox(
+                "Tôi hiểu thao tác này sẽ xóa vĩnh viễn hồ sơ công ty và toàn bộ dataset/ZIP của công ty",
+                key=f'confirm-delete-company-{company["id"]}',
+            )
+            if st.button(
+                "Xóa công ty và dữ liệu",
+                key=f'delete-company-{company["id"]}',
+                type="secondary",
+                disabled=not confirm_company_delete,
+            ):
+                try:
+                    companies = delete_company(company["id"], companies)
+                    st.success(f'Đã xóa {company["name"]} và dữ liệu liên quan.')
+                    st.rerun()
+                except (OSError, ValueError) as exc:
+                    st.error(f"Không thể xóa công ty: {exc}")
 
     st.divider()
     st.subheader("Thêm công ty")
@@ -367,80 +489,83 @@ def render_output_tab() -> None:
     st.subheader("Kho dữ liệu đã tạo")
 
     manifests = get_batch_manifests()
-
     if not manifests:
         st.info("Chưa có dataset nào.")
         return
 
-    for manifest in manifests:
+    st.caption("Chọn một hoặc nhiều batch bằng checkbox, sau đó xóa hàng loạt. Thao tác chỉ xóa dữ liệu sinh trên máy và các ZIP tương ứng.")
+    selected_manifests: list[Path] = []
+    for index, manifest in enumerate(manifests):
         try:
-            data = json.loads(
-                manifest.read_text(encoding="utf-8")
-            )
-
+            data = json.loads(manifest.read_text(encoding="utf-8"))
             company = data.get("company", {})
             company_name = company.get("name", "Unknown")
             batch_id = data.get("batch_id", manifest.parent.name)
-
-            document_types = data.get(
-                "document_types",
-                [data.get("document_type", "Unknown")],
-            )
-
+            document_types = data.get("document_types", [data.get("document_type", "Unknown")])
             type_label = ", ".join(document_types)
 
-            with st.expander(
-                f"{company_name} · {type_label} · {batch_id}"
-            ):
-                st.write(
-                    f'Ngày tạo: {data.get("created_at", "Unknown")}'
-                )
+            col_select, col_details = st.columns([0.08, 0.92])
+            with col_select:
+                if st.checkbox("Chọn", key=f"select-batch-{batch_id}", label_visibility="collapsed"):
+                    selected_manifests.append(manifest)
+            with col_details:
+                with st.expander(f"{company_name} · {type_label} · {batch_id}"):
+                    st.write(f'Ngày tạo: {data.get("created_at", "Unknown")}')
+                    st.write(f'Số hợp lệ: {data.get("valid_count", 0)} · Số negative: {data.get("negative_count", 0)}')
 
-                st.write(
-                    f'Số hợp lệ: {data.get("valid_count", 0)}'
-                    f' · Số negative: {data.get("negative_count", 0)}'
-                )
+                    valid_by_type = data.get("valid_count_by_type")
+                    if valid_by_type:
+                        st.write("Số lượng theo loại:")
+                        st.json(valid_by_type)
+                    status_by_type = data.get("document_type_status")
+                    if status_by_type:
+                        st.write("Trạng thái Registry:")
+                        st.json(status_by_type)
 
-                valid_by_type = data.get("valid_count_by_type")
-
-                if valid_by_type:
-                    st.write("Số lượng theo loại:")
-                    st.json(valid_by_type)
-
-                status_by_type = data.get("document_type_status")
-
-                if status_by_type:
-                    st.write("Trạng thái Registry:")
-                    st.json(status_by_type)
-
-                archive = manifest.parent.with_suffix(".zip")
-
-                if archive.exists():
-                    st.download_button(
-                        "Tải ZIP",
-                        data=archive.read_bytes(),
-                        file_name=archive.name,
-                        mime="application/zip",
-                        key=f"dl-{batch_id}",
-                    )
-
-                validation_report = (
-                    manifest.parent / "validation_report.json"
-                )
-
-                if validation_report.exists():
-                    with st.expander("Xem Validation Report"):
-                        report_data = json.loads(
-                            validation_report.read_text(
-                                encoding="utf-8"
-                            )
+                    archive = manifest.parent.with_suffix(".zip")
+                    if archive.exists():
+                        st.download_button(
+                            "Tải Full Dataset", data=archive.read_bytes(),
+                            file_name=archive.name, mime="application/zip",
+                            key=f"dl-full-{batch_id}",
                         )
-                        st.json(report_data)
+                    upload_archive = archive.with_name(archive.stem + "-upload.zip")
+                    if upload_archive.exists():
+                        st.download_button(
+                            "Tải Upload Dataset", data=upload_archive.read_bytes(),
+                            file_name=upload_archive.name, mime="application/zip",
+                            key=f"dl-upload-{batch_id}",
+                            help="Chỉ chứa PDF/XML đầu vào; không kèm Ground Truth.",
+                        )
 
+                    validation_report = manifest.parent / "validation_report.json"
+                    if validation_report.exists():
+                        with st.expander("Xem Validation Report"):
+                            report_data = json.loads(validation_report.read_text(encoding="utf-8"))
+                            st.json(report_data)
         except (OSError, json.JSONDecodeError, KeyError) as exc:
-            st.warning(
-                f"Không đọc được Manifest {manifest}: {exc}"
-            )
+            st.warning(f"Không đọc được Manifest {manifest}: {exc}")
+
+    st.divider()
+    st.write(f"Đã chọn **{len(selected_manifests)}** / {len(manifests)} batch")
+    confirm_delete = st.checkbox(
+        "Tôi xác nhận xóa vĩnh viễn các batch đã chọn cùng ZIP tương ứng",
+        key="confirm-delete-selected-batches",
+        disabled=not selected_manifests,
+    )
+    if st.button(
+        f"Xóa {len(selected_manifests)} batch đã chọn",
+        type="secondary",
+        use_container_width=True,
+        disabled=not selected_manifests or not confirm_delete,
+        key="delete-selected-batches",
+    ):
+        try:
+            deleted_count = delete_selected_batches(selected_manifests)
+            st.success(f"Đã xóa {deleted_count} batch và các file ZIP tương ứng.")
+            st.rerun()
+        except (OSError, ValueError) as exc:
+            st.error(f"Không thể xóa batch: {exc}")
 
 
 def main() -> None:

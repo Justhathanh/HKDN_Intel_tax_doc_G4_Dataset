@@ -315,7 +315,7 @@ def _build_manifest(
                 "bytes": p.stat().st_size,
             }
     manifest = {
-        "dataset_id": out_dir.parent.name,
+        "dataset_id": out_dir.parent.parent.name if out_dir.parent.name == "documents" else out_dir.parent.name,
         "document_id": document_id,
         "document_type": document_type,
         "generator_version": generator_version,
@@ -366,6 +366,7 @@ def write_bundle(inv: CanonicalInvoice, out_dir: Path, generator_version="0.2.0"
         "expected_validation_errors": validation_errors or [],
         "fields": gt_fields,
         "line_items": inv.to_dict()["lines"],
+        "relationships": inv.extra.get("scenario", {}),
     }
     (out_dir / "ground_truth.json").write_text(json.dumps(gt, ensure_ascii=False, indent=2), encoding="utf-8")
     _build_manifest(out_dir, inv.document_id, inv.document_type, qa_label, seed, generator_version, validation_errors)
