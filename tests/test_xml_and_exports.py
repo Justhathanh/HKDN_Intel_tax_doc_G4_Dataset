@@ -177,6 +177,53 @@ def test_adjustment_scenario_links_original_and_signed_delta(tmp_path, monkeypat
     assert any(name.startswith("documents/" + adjustment["folder_name"] + "/") for name in upload_names)
 
 
+def test_adjustment_scenario_supports_sales_invoice_as_original(tmp_path, monkeypatch):
+    from dataset_generator import batch_generator
+
+    monkeypatch.setattr(batch_generator, "OUTPUT_ROOT", tmp_path)
+    archive = batch_generator.create_batch(
+        company={
+            "id": "company-sales-test",
+            "name": "Test",
+            "legal_name": "TEST COMPANY",
+            "tax_code": "9901111222",
+            "address": "Synthetic address",
+        },
+        document_types=["adjustment_invoice"],
+        direction="incoming",
+        count_per_type=1,
+        seed=44,
+        include_negative=False,
+        allow_unverified=True,
+        adjustment_original_type="sales_invoice",
+    )
+    batch_dir = tmp_path / "company-sales-test" / archive.stem
+    manifest = json.loads((batch_dir / "batch_manifest.json").read_text(encoding="utf-8"))
+    original = next(item for item in manifest["documents"] if item.get("scenario_role") == "original")
+    adjustment = next(item for item in manifest["documents"] if item["document_type"] == "adjustment_invoice")
+
+    assert original["document_type"] == "sales_invoice"
+    assert original["folder_name"].startswith("sales_invoice")
+    assert adjustment["related_document_id"] == original["document_id"]
+    assert manifest["adjustment_original_type"] == "sales_invoice"
+
+    adjustment_dir = batch_dir / adjustment["relative_path"]
+    canonical = json.loads((adjustment_dir / "canonical.json").read_text(encoding="utf-8"))
+    assert canonical["metadata"]["root_invoice_type"] == "sales_invoice"
+    assert "vat_amount" not in canonical["metadata"]
+    assert canonical["title"] == "HÓA ĐƠN BÁN HÀNG ĐIỀU CHỈNH"
+
+    xml_root = ET.parse(adjustment_dir / canonical["metadata"].get("xml_artifact", adjustment_dir.joinpath(json.loads((adjustment_dir / "manifest.json").read_text(encoding="utf-8")).get("xml_artifact", ""))).name).getroot()
+    root_doc = xml_root.find("Root/SyntheticTaxDocument")
+    adjusted_doc = xml_root.find("Adjusted/SyntheticTaxDocument")
+    assert root_doc.findtext("DocumentType") == "sales_invoice"
+    assert adjusted_doc.findtext("DocumentType") == "sales_invoice"
+    expected = canonical["metadata"]["scenario_expected"]
+    assert expected["final_total"] == str(
+        int(expected["original_total"]) + int(expected["adjustment_delta"])
+    )
+
+
 def test_replacement_scenario_is_not_additive(tmp_path, monkeypatch):
     from dataset_generator import batch_generator
 
