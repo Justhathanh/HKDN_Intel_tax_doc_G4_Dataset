@@ -209,6 +209,36 @@ def _short_document_base(document_type: str, code: str | int, role: str | None =
     suffix = f"_{role}" if role else ""
     return f"{prefix}{formatted_code}{suffix}"
 
+    
+def _allocate_document_dir(
+    documents_dir: Path,
+    document_type: str,
+    code: str | int,
+    role: str | None = None,
+) -> Path:
+    """Create a readable per-document folder without changing the random lookup code."""
+    base_name = _short_document_base(document_type, code, role)
+    candidate = base_name
+    collision_index = 2
+    while (documents_dir / candidate).exists():
+        candidate = f"{base_name}__{collision_index}"
+        collision_index += 1
+    path = documents_dir / candidate
+    path.mkdir(parents=True, exist_ok=False)
+    return path
+
+
+def _record_folder_metadata(document_dir: Path, filename_code: int) -> None:
+    manifest_path = document_dir / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["filename_code"] = f"{filename_code:03d}"
+    manifest["folder_name"] = document_dir.name
+    manifest["relative_path"] = document_dir.relative_to(document_dir.parents[1]).as_posix()
+    manifest_path.write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
 
 def _rename_pdf_artifacts(document_dir: Path, base_name: str, primary_pdf: str) -> None:
     source = document_dir / primary_pdf
@@ -219,6 +249,14 @@ def _rename_pdf_artifacts(document_dir: Path, base_name: str, primary_pdf: str) 
     scan_target = document_dir / f"{base_name}_scan.pdf"
     if scan.exists() and scan != scan_target:
         scan.rename(scan_target)
+
+    images_dir = document_dir / "images"
+    if images_dir.is_dir():
+        for image_path in list(images_dir.iterdir()):
+            if image_path.is_file() and image_path.name.startswith("page-001"):
+                image_target = images_dir / f"{base_name}_{image_path.name}"
+                if image_path != image_target:
+                    image_path.rename(image_target)
 
 
 def _build_adjusted_invoice_snapshot(original: CanonicalInvoice, adjustment: Any) -> CanonicalInvoice:
@@ -341,11 +379,12 @@ def create_batch(
                         + "; ".join(errors)
                     )
 
-                output_dir = documents_dir / invoice.document_id
+                output_dir = _allocate_document_dir(documents_dir, type_key, filename_code)
                 write_bundle(invoice, output_dir)
                 short_base = _short_document_base(type_key, filename_code)
                 _rename_pdf_artifacts(output_dir, short_base, "invoice.pdf")
                 add_xml_and_refresh_manifest(output_dir, f"{short_base}.xml")
+                _record_folder_metadata(output_dir, filename_code)
 
                 record = {
                     "document_id": invoice.document_id,
@@ -355,6 +394,8 @@ def create_batch(
                     "series": invoice.series,
                     "invoice_number": invoice.invoice_number,
                     "filename_code": f"{filename_code:03d}",
+                    "folder_name": output_dir.name,
+                    "relative_path": output_dir.relative_to(batch_dir).as_posix(),
                 }
 
             else:
@@ -441,12 +482,12 @@ def create_batch(
                             f"Scenario original validation failed for {original.document_id}: "
                             + "; ".join(original_errors)
                         )
-                    original_dir = documents_dir / original.document_id
+                    original_dir = _allocate_document_dir(documents_dir, "vat_invoice", filename_code)
                     write_bundle(original, original_dir)
-                    scenario_base = _short_document_base(type_key, filename_code)
-                    root_base = f"{scenario_base}_root"
+                    root_base = _short_document_base("vat_invoice", filename_code, "root")
                     _rename_pdf_artifacts(original_dir, root_base, "invoice.pdf")
                     add_xml_and_refresh_manifest(original_dir, f"{root_base}.xml")
+                    _record_folder_metadata(original_dir, filename_code)
                     scenario_original_record = {
                         "document_id": original.document_id,
                         "document_type": "vat_invoice",
@@ -458,6 +499,8 @@ def create_batch(
                         "series": original.series,
                         "invoice_number": original.invoice_number,
                         "filename_code": f"{filename_code:03d}",
+                        "folder_name": original_dir.name,
+                        "relative_path": original_dir.relative_to(batch_dir).as_posix(),
                     }
 
                 errors = validate_extended_document(doc)
@@ -467,7 +510,7 @@ def create_batch(
                         + "; ".join(errors)
                     )
 
-                output_dir = documents_dir / doc.document_id
+                output_dir = _allocate_document_dir(documents_dir, type_key, filename_code)
                 write_extended_bundle(doc, output_dir, seed=current_seed)
                 if scenario_id:
                     scenario_base = _short_document_base(type_key, filename_code)
@@ -501,6 +544,7 @@ def create_batch(
                     short_base = _short_document_base(type_key, filename_code)
                     _rename_pdf_artifacts(output_dir, short_base, "document.pdf")
                     add_xml_and_refresh_manifest(output_dir, f"{short_base}.xml")
+                _record_folder_metadata(output_dir, filename_code)
 
                 record = {
                     "document_id": doc.document_id,
@@ -513,6 +557,8 @@ def create_batch(
                         "related_document_id": doc.metadata["references_document_id"],
                     } if type_key in {"adjustment_invoice", "replacement_invoice"} else {}),
                     "filename_code": f"{filename_code:03d}",
+                    "folder_name": output_dir.name,
+                    "relative_path": output_dir.relative_to(batch_dir).as_posix(),
                 }
 
                 if scenario_original_record:
@@ -578,16 +624,17 @@ def create_batch(
                 and item.get("invoice_number")
             }
             errors = validate_invoice(invoice, seen_references=seen_negative_refs)
-            negative_dir = vat_dir / f"{case}-{invoice.document_id}"
+            negative_code = secrets.randbelow(999) + 1
+            negative_dir = _allocate_document_dir(documents_dir, "vat_invoice", negative_code, case)
             write_bundle(
                 invoice,
                 negative_dir,
                 validation_errors=errors,
             )
-            negative_code = secrets.randbelow(999) + 1
-            negative_base = f"tax_invoice{negative_code:03d}_{case}"
+            negative_base = _short_document_base("vat_invoice", negative_code, case)
             _rename_pdf_artifacts(negative_dir, negative_base, "invoice.pdf")
             add_xml_and_refresh_manifest(negative_dir, f"{negative_base}.xml")
+            _record_folder_metadata(negative_dir, negative_code)
             validation_records.append({
                 "document_id": invoice.document_id,
                 "document_type": "vat_invoice",
