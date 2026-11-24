@@ -366,6 +366,8 @@ def create_batch(
                         "scenario_id": scenario_id,
                         "scenario_role": "original",
                         "related_document_id": doc.document_id,
+                        "series": original.series,
+                        "invoice_number": original.invoice_number,
                     }
 
                 errors = validate_extended_document(doc)
