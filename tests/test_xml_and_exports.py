@@ -138,6 +138,9 @@ def test_adjustment_scenario_links_original_and_signed_delta(tmp_path, monkeypat
     assert scenario_xml.findtext("ScenarioId") == adjustment["scenario_id"]
     assert scenario_xml.find("Root/SyntheticTaxDocument") is not None
     assert scenario_xml.find("Adjusted/SyntheticTaxDocument") is not None
+    adjusted_total = scenario_xml.findtext("Adjusted/SyntheticTaxDocument/Totals/grand_total")
+    assert adjusted_total == expected["final_total"]
+    assert any(doc_dir.glob("adjustment_invoice*_adjustment.pdf"))
     assert any(doc_dir.glob("adjustment_invoice*_adjusted.pdf"))
     root_dir = batch_dir / "documents" / original["document_id"]
     assert any(root_dir.glob("adjustment_invoice*_root.pdf"))
