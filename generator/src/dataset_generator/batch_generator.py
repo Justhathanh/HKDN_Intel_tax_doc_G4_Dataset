@@ -277,8 +277,91 @@ def create_batch(
                 }
 
             else:
+                scenario_original_record = None
                 doc = create_extended_document(type_key, seed=current_seed)
                 _apply_company_to_extended(doc, company, direction)
+
+                if type_key in {"adjustment_invoice", "replacement_invoice"}:
+                    scenario_id = str(uuid.uuid5(
+                        uuid.NAMESPACE_URL,
+                        f"thtax-scenario-{type_key}-{current_seed}",
+                    ))
+                    original_seed = current_seed + 50_000_000
+                    original = create_sample_invoice(original_seed, scenario="valid")
+                    _apply_company_to_vat(original, company, direction)
+
+                    # Keep the parties identical across the source and related document.
+                    doc.issuer_name = original.seller.name
+                    doc.issuer_tax_code = original.seller.tax_code
+                    doc.issuer_address = original.seller.address
+                    doc.recipient_name = original.buyer.name
+                    doc.recipient_tax_code = original.buyer.tax_code
+                    doc.recipient_address = original.buyer.address
+
+                    original.extra["scenario"] = {
+                        "scenario_id": scenario_id,
+                        "role": "original",
+                        "related_document_type": type_key,
+                    }
+                    doc.metadata.update({
+                        "scenario_id": scenario_id,
+                        "role": "adjustment" if type_key == "adjustment_invoice" else "replacement",
+                        "references_document_id": original.document_id,
+                        "reference_invoice_number": original.invoice_number,
+                        "reference_series": original.series,
+                    })
+
+                    if type_key == "adjustment_invoice":
+                        # Store an absolute adjustment amount and its signed business effect.
+                        # The original document remains unchanged evidence.
+                        adjustment_subtotal = (original.grand_total * Decimal("0.05")).quantize(Decimal("1"))
+                        vat_amount = (adjustment_subtotal * Decimal("0.08")).quantize(Decimal("1"))
+                        doc.items = [{
+                            "name": "Khoản điều chỉnh giá trị hàng hóa/dịch vụ (mẫu giả lập)",
+                            "unit": "Khoản",
+                            "quantity": Decimal("1"),
+                            "unit_price": adjustment_subtotal,
+                            "amount": adjustment_subtotal,
+                        }]
+                        doc.metadata["subtotal"] = adjustment_subtotal
+                        doc.metadata["vat_amount"] = vat_amount
+                        adjustment_direction = "decrease" if current_seed % 2 == 0 else "increase"
+                        signed_delta = -(adjustment_subtotal + vat_amount) if adjustment_direction == "decrease" else adjustment_subtotal + vat_amount
+                        doc.metadata["adjustment_direction"] = adjustment_direction
+                        doc.metadata["adjustment_delta_signed"] = signed_delta
+                        doc.total_amount = adjustment_subtotal + vat_amount
+                        doc.metadata["scenario_expected"] = {
+                            "original_total": original.grand_total,
+                            "adjustment_delta": signed_delta,
+                            "final_total": original.grand_total + signed_delta,
+                            "rule": "original_total_plus_signed_adjustment",
+                        }
+                    else:
+                        doc.metadata["scenario_expected"] = {
+                            "original_total": original.grand_total,
+                            "replacement_total": doc.total_amount,
+                            "final_total": doc.total_amount,
+                            "rule": "replacement_supersedes_original_not_additive",
+                        }
+
+                    original_errors = validate_invoice(original)
+                    if original_errors:
+                        raise ValueError(
+                            f"Scenario original validation failed for {original.document_id}: "
+                            + "; ".join(original_errors)
+                        )
+                    original_dir = documents_dir / original.document_id
+                    write_bundle(original, original_dir)
+                    add_xml_and_refresh_manifest(original_dir)
+                    scenario_original_record = {
+                        "document_id": original.document_id,
+                        "document_type": "vat_invoice",
+                        "document_label": "core_synthetic",
+                        "validation_status": "passed",
+                        "scenario_id": scenario_id,
+                        "scenario_role": "original",
+                        "related_document_id": doc.document_id,
+                    }
 
                 errors = validate_extended_document(doc)
                 if errors:
@@ -296,7 +379,24 @@ def create_batch(
                     "document_type": type_key,
                     "document_label": "reference_unverified_synthetic",
                     "validation_status": "passed_basic_checks",
+                    **({
+                        "scenario_id": doc.metadata["scenario_id"],
+                        "scenario_role": doc.metadata["role"],
+                        "related_document_id": doc.metadata["references_document_id"],
+                    } if type_key in {"adjustment_invoice", "replacement_invoice"} else {}),
                 }
+
+                if scenario_original_record:
+                    document_records.append(scenario_original_record)
+                    validation_records.append({
+                        "document_id": scenario_original_record["document_id"],
+                        "document_type": "vat_invoice",
+                        "status": "passed",
+                        "errors": [],
+                        "scenario_id": scenario_original_record["scenario_id"],
+                        "scenario_role": "original",
+                    })
+                    valid_count_by_type["vat_invoice"] = valid_count_by_type.get("vat_invoice", 0) + 1
 
             document_records.append(record)
             validation_records.append({
