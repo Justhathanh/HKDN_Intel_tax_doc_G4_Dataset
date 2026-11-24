@@ -58,12 +58,13 @@ def add_adjustment_scenario_xml(
     scenario_id: str,
     filename: str,
     scenario_type: str = "adjustment_invoice",
+    adjusted_snapshot: dict[str, Any] | None = None,
 ) -> Path:
     documents_dir = batch_dir / "documents"
     root_dir = documents_dir / root_document_id
     adjusted_dir = documents_dir / adjusted_document_id
     root_doc = json.loads((root_dir / "canonical.json").read_text(encoding="utf-8"))
-    adjusted_doc = json.loads((adjusted_dir / "canonical.json").read_text(encoding="utf-8"))
+    adjusted_doc = adjusted_snapshot or json.loads((adjusted_dir / "canonical.json").read_text(encoding="utf-8"))
     xml_path = adjusted_dir / filename
     write_adjustment_scenario_xml(root_doc, adjusted_doc, scenario_id, xml_path, scenario_type)
     ET.parse(xml_path)
