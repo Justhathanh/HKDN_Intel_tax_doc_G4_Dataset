@@ -322,7 +322,7 @@ def write_extended_bundle(doc: ExtendedDocument, out_dir: Path, seed: int = 42, 
         },
         "line_items": doc.to_dict()["items"],
         "relationships": {
-            key: doc.metadata[key]
+            key: doc.to_dict()["metadata"][key]
             for key in ("scenario_id", "role", "references_document_id", "reference_invoice_number", "reference_series", "scenario_expected", "adjustment_direction", "adjustment_delta_signed")
             if key in doc.metadata
         },
