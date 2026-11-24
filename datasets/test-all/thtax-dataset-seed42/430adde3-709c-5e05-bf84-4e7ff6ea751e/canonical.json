@@ -1,0 +1,32 @@
+{
+  "document_id": "430adde3-709c-5e05-bf84-4e7ff6ea751e",
+  "document_type": "state_budget_payment",
+  "title": "GIẤY NỘP TIỀN VÀO NGÂN SÁCH NHÀ NƯỚC",
+  "issue_date": "2026-10-24",
+  "reference_code": "GNT-000442",
+  "issuer_name": "KHO BẠC NHÀ NƯỚC TP. HỒ CHÍ MINH (MẪU GIẢ LẬP)",
+  "issuer_tax_code": "9900000001",
+  "issuer_address": "Số 37 Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh",
+  "recipient_name": "CÔNG TY CỔ PHẦN ĐỐI TÁC KẾ TOÁN DEMO B",
+  "recipient_tax_code": "9922223333",
+  "recipient_address": "Số 79 Đường Điện Biên Phủ, Quận Bình Thạnh, TP. Hồ Chí Minh",
+  "total_amount": "29000000",
+  "currency": "VND",
+  "schema_verified": false,
+  "synthetic": true,
+  "metadata": {
+    "chapter_code": "754",
+    "sub_item_code": "1701",
+    "tax_period": "Q3/2026",
+    "bank_name": "Vietcombank CN TP.HCM"
+  },
+  "items": [
+    {
+      "name": "Thuế Giá trị gia tăng hàng sản xuất kinh doanh trong nước",
+      "unit": "Kỳ",
+      "quantity": "1",
+      "unit_price": "29000000",
+      "amount": "29000000"
+    }
+  ]
+}

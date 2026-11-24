@@ -1,0 +1,55 @@
+{
+  "document_id": "8204ec6a-fb43-5999-9e9d-34d38e73dd42",
+  "document_type": "sales_invoice",
+  "document_label": "reference_unverified_synthetic",
+  "schema_verified": false,
+  "fields": {
+    "reference_code": {
+      "displayed": "2C26TAA - 00000142",
+      "normalized": "2C26TAA - 00000142",
+      "present": true
+    },
+    "issue_date": {
+      "displayed": "Ngày 02 tháng 11 năm 2026",
+      "normalized": "2026-11-02",
+      "present": true
+    },
+    "issuer.name": {
+      "displayed": "CÔNG TY TNHH PHẦN MỀM MẪU THTAX",
+      "normalized": "CÔNG TY TNHH PHẦN MỀM MẪU THTAX",
+      "present": true
+    },
+    "issuer.tax_code": {
+      "displayed": "9903456789",
+      "normalized": "9903456789",
+      "present": true
+    },
+    "recipient.name": {
+      "displayed": "DOANH NGHIỆP TƯ NHÂN THỬ NGHIỆM C",
+      "normalized": "DOANH NGHIỆP TƯ NHÂN THỬ NGHIỆM C",
+      "present": true
+    },
+    "totals.total_amount": {
+      "displayed": "70.200.000",
+      "normalized": "70200000",
+      "present": true
+    }
+  },
+  "line_items": [
+    {
+      "name": "Bản quyền phần mềm quản lý hóa đơn điện tử (12 tháng)",
+      "unit": "Năm",
+      "quantity": "3",
+      "unit_price": "4700000",
+      "amount": "14100000"
+    },
+    {
+      "name": "Thiết bị máy chủ lưu trữ chuyên dụng NAS",
+      "unit": "Bộ",
+      "quantity": "3",
+      "unit_price": "18700000",
+      "amount": "56100000"
+    }
+  ],
+  "relationships": {}
+}

@@ -1,0 +1,45 @@
+{
+  "dataset_id": "thtax-dataset-seed42",
+  "document_id": "430adde3-709c-5e05-bf84-4e7ff6ea751e",
+  "document_type": "state_budget_payment",
+  "generator_version": "0.2.0",
+  "schema_verified": false,
+  "xml_schema_version": null,
+  "thtax_core_contract_version": "1.0.0",
+  "synthetic": true,
+  "seed": 442,
+  "artifacts": {
+    "canonical.json": {
+      "mime_type": "application/json",
+      "sha256": "730a5ff48477fc94964a920034eb209d7660310a7a88f464e802dfd7c7b374e4",
+      "bytes": 1142
+    },
+    "document.pdf": {
+      "mime_type": "application/pdf",
+      "sha256": "495d4a438454d30ff8e61a66f92a67a0d166dc8c8c7d601cc918ac98a65d6802",
+      "bytes": 84526
+    },
+    "ground_truth.json": {
+      "mime_type": "application/json",
+      "sha256": "f3825062ffc2f2326e59ccfe5b7b36dec97d26fc7fbcae3b249f42978beee257",
+      "bytes": 1417
+    },
+    "images/page-001.png": {
+      "mime_type": "image/png",
+      "sha256": "1f2d3b073269d53e0f2ad9a9aa3d4bb9a80382df2578a9ccfd7118aa10ce9d21",
+      "bytes": 148385
+    },
+    "images/page-001_blur.jpg": {
+      "mime_type": "image/jpeg",
+      "sha256": "c0f52908e5dfe28d538b16573ead11ae9807ad8de8a910c642dc3e5c095f3f67",
+      "bytes": 261934
+    },
+    "invoice_scan.pdf": {
+      "mime_type": "application/pdf",
+      "sha256": "424acb3e1939760431e49936b5b57f1065905c8f3016b0fec9fd85580b8a00ff",
+      "bytes": 262844
+    }
+  },
+  "validation_status": "reference_unverified_synthetic",
+  "validation_errors": []
+}

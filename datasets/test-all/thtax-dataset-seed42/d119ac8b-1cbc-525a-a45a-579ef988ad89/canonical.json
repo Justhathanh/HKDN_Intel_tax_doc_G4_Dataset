@@ -1,0 +1,60 @@
+{
+  "document_id": "d119ac8b-1cbc-525a-a45a-579ef988ad89",
+  "document_type": "vat_invoice",
+  "issue_date": "2026-09-09",
+  "form_number": "1",
+  "series": "C26TAB",
+  "invoice_number": "00000042",
+  "seller": {
+    "name": "CÔNG TY TNHH PHẦN MỀM MẪU THTAX",
+    "address": "Số 88 Đường Bạch Đằng, Quận Hải Châu, TP. Đà Nẵng",
+    "tax_code": "9903456789",
+    "email": null,
+    "bank_account": null
+  },
+  "buyer": {
+    "name": "CÔNG TY TNHH KHÁCH HÀNG DOANH NGHIỆP MẪU A",
+    "address": "Số 456 Đường Võ Văn Tần, Phường 5, Quận 3, TP. Hồ Chí Minh",
+    "tax_code": "9911112222",
+    "email": null,
+    "bank_account": null
+  },
+  "lines": [
+    {
+      "name": "Bản quyền phần mềm quản lý hóa đơn điện tử (12 tháng)",
+      "unit": "Năm",
+      "quantity": "1",
+      "unit_price": "5900000",
+      "vat_rate": "0"
+    },
+    {
+      "name": "Dịch vụ bảo trì hệ thống hạ tầng mạng nội bộ",
+      "unit": "Lần",
+      "quantity": "1",
+      "unit_price": "3800000",
+      "vat_rate": "0"
+    }
+  ],
+  "currency": "VND",
+  "payment_method": "TM/CK",
+  "synthetic": true,
+  "legal_profile_version": "ND254_2026_TT91_2026",
+  "xml_schema_version": "unverified",
+  "thtax_core_contract_version": "v1.0-draft",
+  "extra": {
+    "seed": 42,
+    "scenario": "valid",
+    "qa_label": "valid_synthetic",
+    "error_reason": null,
+    "seller_bank_account": "112233445566 - Ngân hàng TMCP Công Thương Việt Nam (VietinBank)",
+    "payment_method": "TM/CK",
+    "watermark": "DỮ LIỆU GIẢ LẬP - KHÔNG CÓ GIÁ TRỊ PHÁP LÝ",
+    "legal_profile_id": "ND254_2026_TT91_2026",
+    "legal_profile_version": "2026.07.01"
+  },
+  "totals": {
+    "subtotal": "9700000",
+    "vat_total": "0",
+    "grand_total": "9700000"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "document_id": "430adde3-709c-5e05-bf84-4e7ff6ea751e",
+  "document_type": "state_budget_payment",
+  "document_label": "reference_unverified_synthetic",
+  "schema_verified": false,
+  "fields": {
+    "reference_code": {
+      "displayed": "GNT-000442",
+      "normalized": "GNT-000442",
+      "present": true
+    },
+    "issue_date": {
+      "displayed": "Ngày 24 tháng 10 năm 2026",
+      "normalized": "2026-10-24",
+      "present": true
+    },
+    "issuer.name": {
+      "displayed": "KHO BẠC NHÀ NƯỚC TP. HỒ CHÍ MINH (MẪU GIẢ LẬP)",
+      "normalized": "KHO BẠC NHÀ NƯỚC TP. HỒ CHÍ MINH (MẪU GIẢ LẬP)",
+      "present": true
+    },
+    "issuer.tax_code": {
+      "displayed": "9900000001",
+      "normalized": "9900000001",
+      "present": true
+    },
+    "recipient.name": {
+      "displayed": "CÔNG TY CỔ PHẦN ĐỐI TÁC KẾ TOÁN DEMO B",
+      "normalized": "CÔNG TY CỔ PHẦN ĐỐI TÁC KẾ TOÁN DEMO B",
+      "present": true
+    },
+    "totals.total_amount": {
+      "displayed": "29.000.000",
+      "normalized": "29000000",
+      "present": true
+    }
+  },
+  "line_items": [
+    {
+      "name": "Thuế Giá trị gia tăng hàng sản xuất kinh doanh trong nước",
+      "unit": "Kỳ",
+      "quantity": "1",
+      "unit_price": "29000000",
+      "amount": "29000000"
+    }
+  ],
+  "relationships": {}
+}

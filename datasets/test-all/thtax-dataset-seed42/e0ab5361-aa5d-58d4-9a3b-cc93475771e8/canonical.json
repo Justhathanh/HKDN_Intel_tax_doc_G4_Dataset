@@ -1,0 +1,43 @@
+{
+  "document_id": "e0ab5361-aa5d-58d4-9a3b-cc93475771e8",
+  "document_type": "adjustment_invoice",
+  "title": "HÓA ĐƠN GTGT ĐIỀU CHỈNH",
+  "issue_date": "2026-11-05",
+  "reference_code": "C26TAA - 00000242",
+  "issuer_name": "CÔNG TY CỔ PHẦN THƯƠNG MẠI DỊCH VỤ DEMO VIỆT",
+  "issuer_tax_code": "9902345678-001",
+  "issuer_address": "Tầng 8, Tòa nhà Thử Nghiệm, Phố Duy Tân, Quận Cầu Giấy, Hà Nội",
+  "recipient_name": "CÔNG TY TNHH KHÁCH HÀNG DOANH NGHIỆP MẪU A",
+  "recipient_tax_code": "9911112222",
+  "recipient_address": "Số 456 Đường Võ Văn Tần, Phường 5, Quận 3, TP. Hồ Chí Minh",
+  "total_amount": "44280000",
+  "currency": "VND",
+  "schema_verified": false,
+  "synthetic": true,
+  "metadata": {
+    "form_number": "1",
+    "series": "C26TAA",
+    "invoice_number": "00000242",
+    "reference_invoice_number": "00000241",
+    "reference_series": "C26TAA",
+    "reason": "Điều chỉnh giảm đơn giá dịch vụ theo Biên bản thỏa thuận số BB-242/2026",
+    "subtotal": "41000000",
+    "vat_amount": "3280000"
+  },
+  "items": [
+    {
+      "name": "Dịch vụ bảo trì hệ thống hạ tầng mạng nội bộ",
+      "unit": "Lần",
+      "quantity": "2",
+      "unit_price": "2000000",
+      "amount": "4000000"
+    },
+    {
+      "name": "Thiết bị máy chủ lưu trữ chuyên dụng NAS",
+      "unit": "Bộ",
+      "quantity": "2",
+      "unit_price": "18500000",
+      "amount": "37000000"
+    }
+  ]
+}

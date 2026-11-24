@@ -1,0 +1,45 @@
+{
+  "dataset_id": "thtax-dataset-seed42",
+  "document_id": "8204ec6a-fb43-5999-9e9d-34d38e73dd42",
+  "document_type": "sales_invoice",
+  "generator_version": "0.2.0",
+  "schema_verified": false,
+  "xml_schema_version": null,
+  "thtax_core_contract_version": "1.0.0",
+  "synthetic": true,
+  "seed": 142,
+  "artifacts": {
+    "canonical.json": {
+      "mime_type": "application/json",
+      "sha256": "6ae6045b40b92b708b8d9287fa3d5eeafeb39fa09eac199166ce10a394913763",
+      "bytes": 1301
+    },
+    "document.pdf": {
+      "mime_type": "application/pdf",
+      "sha256": "d62b00098ad8d8f2e29cb0c752e9e135b67e63ffcf6350efcef7b3dda5211fd6",
+      "bytes": 83608
+    },
+    "ground_truth.json": {
+      "mime_type": "application/json",
+      "sha256": "fad78376b0d031a8a9cd9cd584af6f508e56f45888d0eb8bf42f24bcb497fbad",
+      "bytes": 1558
+    },
+    "images/page-001.png": {
+      "mime_type": "image/png",
+      "sha256": "9a213abc4a3c84159178465bbb420228c352b94873ca6fc841a8fb3022a81ada",
+      "bytes": 144928
+    },
+    "images/page-001_blur.jpg": {
+      "mime_type": "image/jpeg",
+      "sha256": "fad2b5cf8e2ce8b807a35b0f81d3a221f79e29d7ac07f0d0030ac4f822b5034d",
+      "bytes": 261539
+    },
+    "invoice_scan.pdf": {
+      "mime_type": "application/pdf",
+      "sha256": "23be3dacbfe2a3c768333dddbd236767c2843e93cee5a669e4a58dd29d007cea",
+      "bytes": 262449
+    }
+  },
+  "validation_status": "reference_unverified_synthetic",
+  "validation_errors": []
+}

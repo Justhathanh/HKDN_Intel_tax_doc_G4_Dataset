@@ -1,0 +1,45 @@
+{
+  "dataset_id": "thtax-dataset-seed42",
+  "document_id": "c341fa71-832c-5de3-b9a8-2be5eb50e066",
+  "document_type": "pit_withholding",
+  "generator_version": "0.2.0",
+  "schema_verified": false,
+  "xml_schema_version": null,
+  "thtax_core_contract_version": "1.0.0",
+  "synthetic": true,
+  "seed": 742,
+  "artifacts": {
+    "canonical.json": {
+      "mime_type": "application/json",
+      "sha256": "68a1baa1750b757ce28104cf9be8d76a914437ef72b673ac1f7af68c5fc4fcac",
+      "bytes": 1162
+    },
+    "document.pdf": {
+      "mime_type": "application/pdf",
+      "sha256": "e788ffce64c39cb32983603c1fa2b6c666dcc65b4ec4e0d5bc3ab9f1409ce0ae",
+      "bytes": 83876
+    },
+    "ground_truth.json": {
+      "mime_type": "application/json",
+      "sha256": "777bfc3f0958268ae885e5006872fdf0a46db45e33820b2af945d3da7df42048",
+      "bytes": 1403
+    },
+    "images/page-001.png": {
+      "mime_type": "image/png",
+      "sha256": "18b6c0c71840e2305834d768f6e7b4dbeccb4e3fcd6ae2ef2721866df7e3fa57",
+      "bytes": 146904
+    },
+    "images/page-001_blur.jpg": {
+      "mime_type": "image/jpeg",
+      "sha256": "5ef9ee29510969d4067de4b84b3a65e631968897b049c22010613c09217522a3",
+      "bytes": 263114
+    },
+    "invoice_scan.pdf": {
+      "mime_type": "application/pdf",
+      "sha256": "a1d5b888785efd73aee8064d2d1ffd7a97b6d9d812281f4c51c28e58124772d3",
+      "bytes": 264024
+    }
+  },
+  "validation_status": "reference_unverified_synthetic",
+  "validation_errors": []
+}
