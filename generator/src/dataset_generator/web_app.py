@@ -261,12 +261,25 @@ def render_generate_tab(active: list[dict]) -> None:
                     st.code(str(archive))
 
                 st.download_button(
-                    "Tải dataset ZIP",
+                    "Tải Full Dataset (kèm Ground Truth)",
                     data=archive.read_bytes(),
                     file_name=archive.name,
                     mime="application/zip",
                     use_container_width=True,
                 )
+
+                upload_archive = archive.with_name(
+                    archive.stem + "-upload.zip"
+                )
+                if upload_archive.exists():
+                    st.download_button(
+                        "Tải Upload Dataset (chỉ PDF/XML đầu vào)",
+                        data=upload_archive.read_bytes(),
+                        file_name=upload_archive.name,
+                        mime="application/zip",
+                        use_container_width=True,
+                        help="Không chứa Ground Truth, canonical data hoặc file scan/negative.",
+                    )
 
             except Exception as exc:
                 st.error(f"Không thể tạo dataset: {exc}")
@@ -417,11 +430,24 @@ def render_output_tab() -> None:
 
                 if archive.exists():
                     st.download_button(
-                        "Tải ZIP",
+                        "Tải Full Dataset",
                         data=archive.read_bytes(),
                         file_name=archive.name,
                         mime="application/zip",
-                        key=f"dl-{batch_id}",
+                        key=f"dl-full-{batch_id}",
+                    )
+
+                upload_archive = archive.with_name(
+                    archive.stem + "-upload.zip"
+                )
+                if upload_archive.exists():
+                    st.download_button(
+                        "Tải Upload Dataset",
+                        data=upload_archive.read_bytes(),
+                        file_name=upload_archive.name,
+                        mime="application/zip",
+                        key=f"dl-upload-{batch_id}",
+                        help="Chỉ chứa PDF/XML đầu vào; không kèm Ground Truth.",
                     )
 
                 validation_report = (
