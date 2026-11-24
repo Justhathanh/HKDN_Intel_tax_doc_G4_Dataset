@@ -126,8 +126,7 @@ def validate_extended_document(doc: Any) -> list[str]:
             all_amounts_present = False
 
     if all_amounts_present:
-        has_vat_breakdown = "subtotal" in metadata or "vat_amount" in metadata
-        if has_vat_breakdown:
+        if "vat_amount" in metadata:
             subtotal = _decimal(metadata.get("subtotal"))
             vat_amount = _decimal(metadata.get("vat_amount"))
             if subtotal is None or vat_amount is None:
@@ -139,6 +138,17 @@ def validate_extended_document(doc: Any) -> list[str]:
                     errors.append("line_items total does not match subtotal")
                 if subtotal + vat_amount != total_amount:
                     errors.append("subtotal + vat_amount does not match total_amount")
+        elif "subtotal" in metadata:
+            subtotal = _decimal(metadata.get("subtotal"))
+            if subtotal is None:
+                errors.append("subtotal must be a finite valid number")
+            else:
+                if subtotal < 0:
+                    errors.append("subtotal cannot be negative")
+                if item_total != subtotal:
+                    errors.append("line_items total does not match subtotal")
+                if subtotal != total_amount:
+                    errors.append("subtotal does not match total_amount")
         elif item_total != total_amount:
             errors.append("line_items total does not match total_amount")
 
