@@ -89,3 +89,74 @@ def test_upload_archive_excludes_ground_truth_and_scan(tmp_path):
     assert not any("ground_truth" in name for name in names)
     assert not any("canonical" in name for name in names)
     assert not any("scan" in name for name in names)
+
+
+def test_adjustment_scenario_links_original_and_signed_delta(tmp_path, monkeypatch):
+    from dataset_generator import batch_generator
+
+    monkeypatch.setattr(batch_generator, "OUTPUT_ROOT", tmp_path)
+    archive = batch_generator.create_batch(
+        company={
+            "id": "company-test",
+            "name": "Test",
+            "legal_name": "TEST COMPANY",
+            "tax_code": "9901111222",
+            "address": "Synthetic address",
+        },
+        document_types=["adjustment_invoice"],
+        direction="incoming",
+        count_per_type=1,
+        seed=42,
+        include_negative=False,
+        allow_unverified=True,
+    )
+    batch_dir = tmp_path / "company-test" / archive.stem
+    manifest = json.loads((batch_dir / "batch_manifest.json").read_text(encoding="utf-8"))
+    records = manifest["documents"]
+    original = next(item for item in records if item.get("scenario_role") == "original")
+    adjustment = next(item for item in records if item["document_type"] == "adjustment_invoice")
+    assert adjustment["related_document_id"] == original["document_id"]
+
+    doc_dir = batch_dir / "documents" / adjustment["document_id"]
+    canonical = json.loads((doc_dir / "canonical.json").read_text(encoding="utf-8"))
+    expected = canonical["metadata"]["scenario_expected"]
+    assert expected["final_total"] == str(
+        int(expected["original_total"]) + int(expected["adjustment_delta"])
+    )
+    assert (doc_dir / "document.xml").is_file()
+    assert (batch_dir / "dataset_index.json").is_file()
+    assert archive.is_file()
+    assert archive.with_name(archive.stem + "-upload.zip").is_file()
+
+
+def test_replacement_scenario_is_not_additive(tmp_path, monkeypatch):
+    from dataset_generator import batch_generator
+
+    monkeypatch.setattr(batch_generator, "OUTPUT_ROOT", tmp_path)
+    archive = batch_generator.create_batch(
+        company={
+            "id": "company-test",
+            "name": "Test",
+            "legal_name": "TEST COMPANY",
+            "tax_code": "9901111222",
+            "address": "Synthetic address",
+        },
+        document_types=["replacement_invoice"],
+        direction="outgoing",
+        count_per_type=1,
+        seed=43,
+        include_negative=False,
+        allow_unverified=True,
+    )
+    batch_dir = tmp_path / "company-test" / archive.stem
+    manifest = json.loads((batch_dir / "batch_manifest.json").read_text(encoding="utf-8"))
+    replacement = next(
+        item for item in manifest["documents"]
+        if item["document_type"] == "replacement_invoice"
+    )
+    canonical = json.loads(
+        (batch_dir / "documents" / replacement["document_id"] / "canonical.json").read_text(encoding="utf-8")
+    )
+    expected = canonical["metadata"]["scenario_expected"]
+    assert expected["rule"] == "replacement_supersedes_original_not_additive"
+    assert expected["final_total"] == expected["replacement_total"]
