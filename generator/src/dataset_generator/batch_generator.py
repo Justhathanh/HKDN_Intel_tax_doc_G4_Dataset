@@ -443,7 +443,7 @@ def create_batch(
                         )
                     original_dir = documents_dir / original.document_id
                     write_bundle(original, original_dir)
-                    scenario_base = _short_document_base(type_key, current_seed)
+                    scenario_base = _short_document_base(type_key, filename_code)
                     root_base = f"{scenario_base}_root"
                     _rename_pdf_artifacts(original_dir, root_base, "invoice.pdf")
                     add_xml_and_refresh_manifest(original_dir, f"{root_base}.xml")
@@ -511,7 +511,8 @@ def create_batch(
                         "scenario_id": doc.metadata["scenario_id"],
                         "scenario_role": doc.metadata["role"],
                         "related_document_id": doc.metadata["references_document_id"],
-                    } if type_key in {"adjustment_invoice", "replacement_invoice"} else {"filename_code": f"{filename_code:03d}"}),
+                    } if type_key in {"adjustment_invoice", "replacement_invoice"} else {}),
+                    "filename_code": f"{filename_code:03d}",
                 }
 
                 if scenario_original_record:
@@ -629,6 +630,7 @@ def create_batch(
         "invoice_direction": direction,
         "synthetic": True,
         "seed": seed,
+        "filename_code_policy": "random_001_999_human_lookup_only_collisions_allowed",
         "count_per_type": count_per_type,
         "valid_count": sum(valid_count_by_type.values()),
         "valid_count_by_type": valid_count_by_type,
