@@ -7,7 +7,8 @@ from dataset_generator.bundle_tools import (
     add_xml_and_refresh_manifest,
     create_upload_archive,
 )
-from dataset_generator.xml_exporter import canonical_to_xml
+from dataset_generator.xml_exporter import canonical_to_xml, adjustment_scenario_to_xml
+from dataset_generator.batch_generator import _short_document_base
 
 
 def test_canonical_xml_is_well_formed_and_escapes_text():
@@ -131,7 +132,15 @@ def test_adjustment_scenario_links_original_and_signed_delta(tmp_path, monkeypat
     assert expected["final_total"] == str(
         int(expected["original_total"]) + int(expected["adjustment_delta"])
     )
-    assert (doc_dir / "document.xml").is_file()
+    scenario_xml_name = doc_manifest["xml_artifact"]
+    scenario_xml = ET.parse(doc_dir / scenario_xml_name).getroot()
+    assert scenario_xml.tag == "SyntheticAdjustmentScenario"
+    assert scenario_xml.findtext("ScenarioId") == adjustment["scenario_id"]
+    assert scenario_xml.find("Root/SyntheticTaxDocument") is not None
+    assert scenario_xml.find("Adjusted/SyntheticTaxDocument") is not None
+    assert any(doc_dir.glob("adjustment_invoice*_adjusted.pdf"))
+    root_dir = batch_dir / "documents" / original["document_id"]
+    assert any(root_dir.glob("adjustment_invoice*_root.pdf"))
     assert (batch_dir / "dataset_index.json").is_file()
     assert archive.is_file()
     assert archive.with_name(archive.stem + "-upload.zip").is_file()
@@ -168,3 +177,40 @@ def test_replacement_scenario_is_not_additive(tmp_path, monkeypatch):
     expected = canonical["metadata"]["scenario_expected"]
     assert expected["rule"] == "replacement_supersedes_original_not_additive"
     assert expected["final_total"] == expected["replacement_total"]
+
+
+
+def test_short_filename_pattern_and_shared_adjustment_code():
+    root_name = _short_document_base("adjustment_invoice", 42, "root")
+    adjusted_name = _short_document_base("adjustment_invoice", 42, "adjusted")
+    assert root_name == "adjustment_invoice142_root"
+    assert adjusted_name == "adjustment_invoice142_adjusted"
+    assert root_name.removeprefix("adjustment_invoice").removesuffix("_root") == adjusted_name.removeprefix("adjustment_invoice").removesuffix("_adjusted")
+    assert _short_document_base("vat_invoice", 42) == "tax_invoice142"
+
+
+def test_combined_adjustment_xml_has_root_and_adjusted_nodes():
+    root_doc = {
+        "document_id": "root-1",
+        "document_type": "vat_invoice",
+        "issue_date": "2026-11-25",
+        "seller": {"name": "Seller"},
+        "buyer": {"name": "Buyer"},
+        "lines": [],
+        "totals": {"grand_total": "1000"},
+    }
+    adjusted_doc = {
+        "document_id": "adjusted-1",
+        "document_type": "adjustment_invoice",
+        "issue_date": "2026-11-25",
+        "issuer_name": "Seller",
+        "recipient_name": "Buyer",
+        "items": [],
+        "total_amount": "100",
+    }
+    root = ET.fromstring(
+        adjustment_scenario_to_xml(root_doc, adjusted_doc, "scenario-1")
+    )
+    assert root.findtext("ScenarioId") == "scenario-1"
+    assert root.find("Root/SyntheticTaxDocument/DocumentId").text == "root-1"
+    assert root.find("Adjusted/SyntheticTaxDocument/DocumentId").text == "adjusted-1"
