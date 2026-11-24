@@ -14,7 +14,10 @@ dependencies = [
     "Pillow>=10.0",
     "streamlit>=1.38",
 ]
-
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+]
 [project.scripts]
 thtax-dataset = "dataset_generator.cli:main"
 thtax-dataset-web = "dataset_generator.web_app:main"
