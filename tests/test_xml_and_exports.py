@@ -124,6 +124,8 @@ def test_adjustment_scenario_links_original_and_signed_delta(tmp_path, monkeypat
     assert original_gt["relationships"]["scenario_id"] == adjustment["scenario_id"]
 
     doc_dir = batch_dir / "documents" / adjustment["document_id"]
+    doc_manifest = json.loads((doc_dir / "manifest.json").read_text(encoding="utf-8"))
+    assert doc_manifest["dataset_id"] == batch_dir.name
     canonical = json.loads((doc_dir / "canonical.json").read_text(encoding="utf-8"))
     expected = canonical["metadata"]["scenario_expected"]
     assert expected["final_total"] == str(
