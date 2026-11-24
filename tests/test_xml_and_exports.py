@@ -57,6 +57,7 @@ def test_add_xml_refreshes_artifact_hashes(tmp_path):
 
     assert ET.parse(xml_path).getroot().findtext("DocumentId") == "doc-1"
     assert manifest["xml_schema_verified"] is False
+    assert manifest["artifacts"]["document.xml"]["mime_type"] == "application/xml"
     assert manifest["artifacts"]["document.xml"]["sha256"] == hashlib.sha256(
         xml_path.read_bytes()
     ).hexdigest()
@@ -145,7 +146,10 @@ def test_adjustment_scenario_links_original_and_signed_delta(tmp_path, monkeypat
     assert any(doc_dir.glob("adjustment_invoice*_adjustment.pdf"))
     assert any(doc_dir.glob("adjustment_invoice*_adjusted.pdf"))
     root_dir = batch_dir / "documents" / original["document_id"]
+    root_manifest = json.loads((root_dir / "manifest.json").read_text(encoding="utf-8"))
+    assert root_manifest["xml_artifact"].endswith("_root.xml")
     assert any(root_dir.glob("adjustment_invoice*_root.pdf"))
+    assert any(root_dir.glob("adjustment_invoice*_root.xml"))
     assert (batch_dir / "dataset_index.json").is_file()
     assert archive.is_file()
     assert archive.with_name(archive.stem + "-upload.zip").is_file()
