@@ -505,12 +505,15 @@ def create_batch(
                 and item.get("invoice_number")
             }
             errors = validate_invoice(invoice, seen_references=seen_negative_refs)
+            negative_dir = vat_dir / f"{case}-{invoice.document_id}"
             write_bundle(
                 invoice,
-                vat_dir / f"{case}-{invoice.document_id}",
+                negative_dir,
                 validation_errors=errors,
             )
-            add_xml_and_refresh_manifest(vat_dir / f"{case}-{invoice.document_id}")
+            negative_base = f"tax_invoice{bad_seed % 900 + 100}_{case}"
+            _rename_pdf_artifacts(negative_dir, negative_base, "invoice.pdf")
+            add_xml_and_refresh_manifest(negative_dir, f"{negative_base}.xml")
             validation_records.append({
                 "document_id": invoice.document_id,
                 "document_type": "vat_invoice",
