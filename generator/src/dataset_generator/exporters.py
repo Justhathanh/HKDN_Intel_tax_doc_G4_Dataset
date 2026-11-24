@@ -315,7 +315,7 @@ def _build_manifest(
                 "bytes": p.stat().st_size,
             }
     manifest = {
-        "dataset_id": out_dir.parent.name,
+        "dataset_id": out_dir.parent.parent.name if out_dir.parent.name == "documents" else out_dir.parent.name,
         "document_id": document_id,
         "document_type": document_type,
         "generator_version": generator_version,
