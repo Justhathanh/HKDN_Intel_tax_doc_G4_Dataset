@@ -130,7 +130,7 @@ def test_adjustment_scenario_links_original_and_signed_delta(tmp_path, monkeypat
     )
     assert original_gt["relationships"]["scenario_id"] == adjustment["scenario_id"]
 
-    doc_dir = batch_dir / "documents" / adjustment["document_id"]
+    doc_dir = batch_dir / adjustment["relative_path"]
     doc_manifest = json.loads((doc_dir / "manifest.json").read_text(encoding="utf-8"))
     assert doc_manifest["dataset_id"] == batch_dir.name
     assert doc_manifest["scenario_snapshot_artifact"] == "adjusted_state.json"
@@ -150,14 +150,27 @@ def test_adjustment_scenario_links_original_and_signed_delta(tmp_path, monkeypat
     assert adjusted_total == expected["final_total"]
     assert any(doc_dir.glob("adjustment_invoice*_adjustment.pdf"))
     assert any(doc_dir.glob("adjustment_invoice*_adjusted.pdf"))
-    root_dir = batch_dir / "documents" / original["document_id"]
+    root_dir = batch_dir / original["relative_path"]
     root_manifest = json.loads((root_dir / "manifest.json").read_text(encoding="utf-8"))
     assert root_manifest["xml_artifact"].endswith("_root.xml")
+    assert root_manifest["document_id"] == original["document_id"]
+    assert root_manifest["folder_name"] == original["folder_name"]
+    assert doc_manifest["folder_name"] == adjustment["folder_name"]
+    assert original["folder_name"].startswith("tax_invoice")
+    assert adjustment["folder_name"].startswith("adjustment_invoice")
     assert any(root_dir.glob("adjustment_invoice*_root.pdf"))
     assert any(root_dir.glob("adjustment_invoice*_root.xml"))
     assert (batch_dir / "dataset_index.json").is_file()
     assert archive.is_file()
     assert archive.with_name(archive.stem + "-upload.zip").is_file()
+    with zipfile.ZipFile(archive) as full_zip:
+        full_names = set(full_zip.namelist())
+    assert f"documents/{original[\"folder_name\"]}/manifest.json" in full_names
+    assert f"documents/{adjustment[\"folder_name\"]}/manifest.json" in full_names
+    with zipfile.ZipFile(archive.with_name(archive.stem + "-upload.zip")) as upload_zip:
+        upload_names = set(upload_zip.namelist())
+    assert any(name.startswith(f"documents/{original[\"folder_name\"]}/") for name in upload_names)
+    assert any(name.startswith(f"documents/{adjustment[\"folder_name\"]}/") for name in upload_names)
 
 
 def test_replacement_scenario_is_not_additive(tmp_path, monkeypatch):
