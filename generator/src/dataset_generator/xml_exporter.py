@@ -16,6 +16,20 @@ def _add(parent: ET.Element, name: str, value: Any) -> ET.Element:
     return node
 
 
+def _append_value(parent: ET.Element, name: str, value: Any) -> ET.Element:
+    if isinstance(value, dict):
+        node = ET.SubElement(parent, name)
+        for child_name, child_value in value.items():
+            _append_value(node, str(child_name), child_value)
+        return node
+    if isinstance(value, list):
+        node = ET.SubElement(parent, name)
+        for item in value:
+            _append_value(node, "Item", item)
+        return node
+    return _add(parent, name, value)
+
+
 def canonical_to_xml(document: dict[str, Any]) -> bytes:
     root = ET.Element("SyntheticTaxDocument", {
         "formatVersion": "1.0",
@@ -55,16 +69,14 @@ def canonical_to_xml(document: dict[str, Any]) -> bytes:
     if metadata:
         meta_node = ET.SubElement(root, "Metadata")
         for key in sorted(metadata):
-            _add(meta_node, key, metadata[key])
+            _append_value(meta_node, key, metadata[key])
 
     items = document.get("lines", document.get("items", [])) or []
     items_node = ET.SubElement(root, "LineItems")
     for index, item in enumerate(items, 1):
         line = ET.SubElement(items_node, "Line", {"index": str(index)})
         for key, value in item.items():
-            if isinstance(value, (dict, list)):
-                value = str(value)
-            _add(line, key, value)
+            _append_value(line, key, value)
 
     totals = document.get("totals")
     if totals is None:
