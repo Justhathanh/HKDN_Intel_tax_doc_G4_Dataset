@@ -136,8 +136,8 @@ Mở URL local mà Streamlit hiển thị (thường là `http://localhost:8501`
 2. Chọn loại chứng từ (hiện chỉ `vat_invoice` được bật) và chiều hóa đơn: đầu vào hoặc đầu ra.
 3. Chọn số lượng, seed và có/không tạo negative cases.
 4. Bấm **Tạo dataset**, tải ZIP ngay tại giao diện.
-5. Tab **Quản lý công ty** cho phép thêm công ty và lưu trữ/kích hoạt công ty.
-6. Tab **Kho dữ liệu** liệt kê các batch đã tạo.
+5. Tab **Quản lý công ty** cho phép thêm, lưu trữ/kích hoạt hoặc xóa vĩnh viễn một công ty cùng toàn bộ batch/ZIP thuộc công ty đó.
+6. Tab **Kho dữ liệu** liệt kê các batch; chọn một hoặc nhiều batch bằng checkbox rồi xác nhận **Xóa batch đã chọn** để xóa hàng loạt.
 
 Ba công ty mặc định là hồ sơ giả lập để kiểm thử UI, không đại diện cho ba khách hàng Pilot thực tế. Cấu hình công ty được lưu tại `configs/companies.json`.
 
@@ -179,4 +179,4 @@ Each Batch produces two archives:
 See [Dataset Export Contract](docs/DATASET_EXPORT_CONTRACT.md) for the artifact and scenario contract.
 
 
-Generated batches can be deleted individually from the **Kho dữ liệu** tab. Deletion removes the selected batch directory and its Full/Upload ZIP archives from local dataset storage; generated datasets are excluded from Git by `.gitignore`.
+Generated batches can be selected and deleted in bulk from the **Kho dữ liệu** tab. Deletion removes only selected batch directories and their adjacent Full/Upload ZIP archives. The **Quản lý công ty** tab also supports permanent company deletion, which removes that company profile from `configs/companies.json` and its entire local dataset directory. Both operations require explicit confirmation and validate paths under the configured data root. Generated datasets are excluded from Git by `.gitignore`.
