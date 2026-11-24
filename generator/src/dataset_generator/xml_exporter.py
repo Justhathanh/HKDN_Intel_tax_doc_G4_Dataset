@@ -94,3 +94,46 @@ def canonical_to_xml(document: dict[str, Any]) -> bytes:
 def write_canonical_xml(document: dict[str, Any], path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_bytes(canonical_to_xml(document))
+
+
+
+def adjustment_scenario_to_xml(
+    root_document: dict[str, Any],
+    adjusted_document: dict[str, Any],
+    scenario_id: str,
+    scenario_type: str = "adjustment_invoice",
+) -> bytes:
+    """Serialize root + adjusted documents into one scenario XML file."""
+    root = ET.Element("SyntheticAdjustmentScenario", {
+        "formatVersion": "1.0",
+        "schemaStatus": "unverified",
+        "synthetic": "true",
+    })
+    _add(root, "ScenarioId", scenario_id)
+    _add(root, "ScenarioType", scenario_type)
+
+    root_node = ET.SubElement(root, "Root")
+    root_node.append(ET.fromstring(canonical_to_xml(root_document)))
+
+    adjusted_node = ET.SubElement(root, "Adjusted")
+    adjusted_node.append(ET.fromstring(canonical_to_xml(adjusted_document)))
+
+    return ET.tostring(root, encoding="utf-8", xml_declaration=True)
+
+
+def write_adjustment_scenario_xml(
+    root_document: dict[str, Any],
+    adjusted_document: dict[str, Any],
+    scenario_id: str,
+    path: Path,
+    scenario_type: str = "adjustment_invoice",
+) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(
+        adjustment_scenario_to_xml(
+            root_document,
+            adjusted_document,
+            scenario_id,
+            scenario_type,
+        )
+    )
