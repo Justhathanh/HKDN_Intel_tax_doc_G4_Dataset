@@ -150,6 +150,7 @@ def test_adjustment_scenario_links_original_and_signed_delta(tmp_path, monkeypat
     assert adjusted_total == expected["final_total"]
     assert any(doc_dir.glob("adjustment_invoice*_adjustment.pdf"))
     assert any(doc_dir.glob("adjustment_invoice*_adjusted.pdf"))
+    assert any((doc_dir / "images").glob("adjustment_invoice*_adjustment_page-001.png"))
     root_dir = batch_dir / original["relative_path"]
     root_manifest = json.loads((root_dir / "manifest.json").read_text(encoding="utf-8"))
     assert root_manifest["xml_artifact"].endswith("_root.xml")
@@ -160,6 +161,7 @@ def test_adjustment_scenario_links_original_and_signed_delta(tmp_path, monkeypat
     assert adjustment["folder_name"].startswith("adjustment_invoice")
     assert any(root_dir.glob("tax_invoice*_root.pdf"))
     assert any(root_dir.glob("tax_invoice*_root.xml"))
+    assert any((root_dir / "images").glob("tax_invoice*_root_page-001.png"))
     assert (batch_dir / "dataset_index.json").is_file()
     assert archive.is_file()
     assert archive.with_name(archive.stem + "-upload.zip").is_file()
