@@ -13,9 +13,6 @@ from .evaluator import evaluate_fields, load_ground_truth
 from .extractor import extract_document
 
 
-SUPPORTED_IMAGES = {".png", ".jpg", ".jpeg", ".tif", ".tiff", ".bmp"}
-
-
 def _safe_name(path: Path) -> str:
     return re.sub(r"[^A-Za-z0-9._-]+", "_", path.stem)
 
@@ -29,6 +26,18 @@ def _collect_inputs(source: Path) -> list[Path]:
         path for path in source.rglob("*")
         if path.is_file() and path.suffix.lower() == ".pdf"
     )
+
+
+def _output_paths(source_file: Path, source_root: Path, output_root: Path) -> tuple[Path, Path]:
+    relative = (
+        source_file.relative_to(source_root)
+        if source_root.is_dir()
+        else Path(source_file.name)
+    )
+    target_dir = output_root / relative.parent
+    target_dir.mkdir(parents=True, exist_ok=True)
+    stem = _safe_name(source_file)
+    return target_dir / f"{stem}.txt", target_dir / f"{stem}.json"
 
 
 def run(args: argparse.Namespace) -> int:
@@ -57,17 +66,17 @@ def run(args: argparse.Namespace) -> int:
             )
             gt = load_ground_truth(path.parent / "ground_truth.json")
             evaluation = evaluate_fields(extracted["text"], gt) if gt else None
+            text_path, json_path = _output_paths(path, source, output)
             record = {
                 **extracted,
+                "output_text": str(text_path),
+                "output_json": str(json_path),
                 "ground_truth": str(path.parent / "ground_truth.json") if gt else None,
                 "evaluation": evaluation,
                 "status": "evaluated" if evaluation else "extracted_no_ground_truth",
             }
-            output_name = _safe_name(path)
-            (output / f"{output_name}.txt").write_text(
-                extracted["text"], encoding="utf-8"
-            )
-            (output / f"{output_name}.json").write_text(
+            text_path.write_text(extracted["text"], encoding="utf-8")
+            json_path.write_text(
                 json.dumps(record, ensure_ascii=False, indent=2),
                 encoding="utf-8",
             )
