@@ -226,10 +226,10 @@ def render_extended_pdf(doc: ExtendedDocument, path: Path):
     title_style = ParagraphStyle("ExtTitle", parent=styles["Title"], fontName=bold_font, fontSize=13, leading=17, alignment=1, textColor=colors.HexColor("#1a365d"))
     wm_style = ParagraphStyle("ExtWM", parent=styles["BodyText"], fontName=bold_font, fontSize=8, leading=11, alignment=1, textColor=colors.red)
     normal = ParagraphStyle("ExtNorm", parent=styles["BodyText"], fontName=reg_font, fontSize=9.5, leading=14)
-    cell_l = ParagraphStyle("ExtCellL", parent=normal, fontSize=8, leading=10, alignment=0)
-    cell_c = ParagraphStyle("ExtCellC", parent=normal, fontSize=8, leading=10, alignment=1)
-    cell_r = ParagraphStyle("ExtCellR", parent=normal, fontSize=8, leading=10, alignment=2)
-
+    cell_l = ParagraphStyle("ExtCellL",parent=normal, fontSize=9.5,leading=13, alignment=0,)
+    cell_c = ParagraphStyle("ExtCellC", parent=normal, fontSize=9.5, leading=13, alignment=1,)
+    cell_r = ParagraphStyle("ExtCellR", parent=normal, fontSize=9.5, leading=13, alignment=2,)
+ 
     story = [
         Paragraph(f"<b>{doc.title}</b>", title_style),
         Paragraph(f"<i>{format_vn_date(doc.issue_date)} &nbsp;|&nbsp; Số tham chiếu: {doc.reference_code}</i>", cell_c),
