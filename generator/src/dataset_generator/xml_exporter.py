@@ -52,7 +52,7 @@ def canonical_to_xml(document: dict[str, Any]) -> bytes:
         parties = ET.SubElement(root, "Parties")
         for role, prefix in (("Issuer", "issuer"), ("Recipient", "recipient")):
             node = ET.SubElement(parties, role)
-            for key in ("name", "tax_code", "address"):
+            for key in ("name", "tax_code", "address", "email"):
                 source_key = f"{prefix}_{key}"
                 if source_key in document:
                     _add(node, key, document.get(source_key))
@@ -97,6 +97,7 @@ def write_canonical_xml(document: dict[str, Any], path: Path) -> None:
 
 
 
+
 def adjustment_scenario_to_xml(
     root_document: dict[str, Any],
     adjusted_document: dict[str, Any],
@@ -104,21 +105,48 @@ def adjustment_scenario_to_xml(
     scenario_type: str = "adjustment_invoice",
 ) -> bytes:
     """Serialize root + adjusted documents into one scenario XML file."""
+
+    def normalize_scenario_parties(document: dict[str, Any]) -> dict[str, Any]:
+        """Normalize legacy seller/buyer parties to issuer/recipient."""
+        normalized = dict(document)
+
+        if "seller" in normalized or "buyer" in normalized:
+            seller = normalized.pop("seller", None) or {}
+            buyer = normalized.pop("buyer", None) or {}
+
+            for role, party in (
+                ("issuer", seller),
+                ("recipient", buyer),
+            ):
+                for field in ("name", "tax_code", "address", "email"):
+                    if field in party:
+                        normalized[f"{role}_{field}"] = party[field]
+
+        return normalized
+
     root = ET.Element("SyntheticAdjustmentScenario", {
         "formatVersion": "1.0",
         "schemaStatus": "unverified",
         "synthetic": "true",
     })
+
     _add(root, "ScenarioId", scenario_id)
     _add(root, "ScenarioType", scenario_type)
 
     root_node = ET.SubElement(root, "Root")
-    root_node.append(ET.fromstring(canonical_to_xml(root_document)))
+    root_normalized = normalize_scenario_parties(root_document)
+    root_node.append(
+        ET.fromstring(canonical_to_xml(root_normalized))
+    )
 
     adjusted_node = ET.SubElement(root, "Adjusted")
-    adjusted_node.append(ET.fromstring(canonical_to_xml(adjusted_document)))
+    adjusted_normalized = normalize_scenario_parties(adjusted_document)
+    adjusted_node.append(
+        ET.fromstring(canonical_to_xml(adjusted_normalized))
+    )
 
     return ET.tostring(root, encoding="utf-8", xml_declaration=True)
+
 
 
 def write_adjustment_scenario_xml(

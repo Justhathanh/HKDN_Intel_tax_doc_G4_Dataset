@@ -65,6 +65,10 @@ def _apply_company_to_vat(invoice: Any, company: dict, direction: str) -> None:
 
 
 def _apply_company_to_extended(doc: Any, company: dict, direction: str) -> None:
+    """
+    Gắn doanh nghiệp thử nghiệm vào đúng vai trò nghiệp vụ
+    của từng loại chứng từ.
+    """
     doc.metadata["pilot_company"] = {
         "company_id": company["id"],
         "display_name": company["name"],
@@ -72,17 +76,38 @@ def _apply_company_to_extended(doc: Any, company: dict, direction: str) -> None:
         "selected_direction": direction,
     }
 
-    if doc.document_type not in INVOICE_LIKE_TYPES:
+    company_fields = {
+        "name": company["legal_name"],
+        "tax_code": company["tax_code"],
+        "address": company.get("address", ""),
+    }
+
+    # Chứng từ có quan hệ người bán - người mua.
+    if doc.document_type in INVOICE_LIKE_TYPES:
+        role = "recipient" if direction == "incoming" else "issuer"
+
+    # Chứng từ ngân sách: doanh nghiệp là người nộp tiền.
+    elif doc.document_type == "state_budget_payment":
+        role = "recipient"
+
+    # Thông báo thuế: doanh nghiệp là người nhận thông báo.
+    elif doc.document_type == "tax_notice":
+        role = "recipient"
+
+    # Biên lai phí, lệ phí: doanh nghiệp là người nộp phí.
+    elif doc.document_type == "fee_receipt":
+        role = "recipient"
+
+    # Chứng từ khấu trừ PIT: doanh nghiệp là đơn vị khấu trừ.
+    elif doc.document_type == "pit_withholding":
+        role = "issuer"
+
+    else:
         return
 
-    if direction == "incoming":
-        doc.recipient_name = company["legal_name"]
-        doc.recipient_tax_code = company["tax_code"]
-        doc.recipient_address = company.get("address", "")
-    else:
-        doc.issuer_name = company["legal_name"]
-        doc.issuer_tax_code = company["tax_code"]
-        doc.issuer_address = company.get("address", "")
+    setattr(doc, f"{role}_name", company_fields["name"])
+    setattr(doc, f"{role}_tax_code", company_fields["tax_code"])
+    setattr(doc, f"{role}_address", company_fields["address"])
 
 
 def _short_document_base(document_type: str, code: str | int, role: str | None = None) -> str:
@@ -290,12 +315,18 @@ def create_batch(
 
     document_records: list[dict[str, Any]] = []
     validation_records: list[dict[str, Any]] = []
-    valid_count_by_type: dict[str, int] = {}
+
+    # Initialize all requested document types before generation.
+    # This prevents scenario originals from being reset when their
+    # document type is processed later in document_types.
+    valid_count_by_type: dict[str, int] = {
+        type_key: 0 for type_key in document_types
+    }
+
     negative_count = 0
 
     for type_index, type_key in enumerate(document_types):
         spec = DOCUMENT_TYPE_REGISTRY[type_key]
-        valid_count_by_type[type_key] = 0
 
         for index in range(count_per_type):
             current_seed = seed + type_index * 100_000 + index

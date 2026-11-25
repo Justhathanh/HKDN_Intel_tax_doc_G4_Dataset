@@ -307,27 +307,62 @@ def write_extended_bundle(doc: ExtendedDocument, out_dir: Path, seed: int = 42, 
     render_extended_pdf(doc, pdf_path)
     export_images_and_scan_pdf(pdf_path, out_dir, seed=seed)
 
+    
+    document_data = doc.to_dict()
+
+    def gt_field(value):
+        return {
+            "displayed": value if value is not None else "",
+            "normalized": value if value is not None else "",
+            "present": value is not None and value != "",
+        }
+
     gt = {
         "document_id": doc.document_id,
         "document_type": doc.document_type,
         "document_label": "reference_unverified_synthetic",
         "schema_verified": False,
         "fields": {
-            "reference_code": {"displayed": doc.reference_code, "normalized": doc.reference_code, "present": True},
-            "issue_date": {"displayed": format_vn_date(doc.issue_date), "normalized": doc.issue_date, "present": True},
-            "issuer.name": {"displayed": doc.issuer_name, "normalized": doc.issuer_name, "present": bool(doc.issuer_name)},
-            "issuer.tax_code": {"displayed": doc.issuer_tax_code, "normalized": doc.issuer_tax_code, "present": bool(doc.issuer_tax_code)},
-            "recipient.name": {"displayed": doc.recipient_name, "normalized": doc.recipient_name, "present": bool(doc.recipient_name)},
-            "totals.total_amount": {"displayed": money(doc.total_amount), "normalized": str(doc.total_amount), "present": True},
+            "reference_code": gt_field(doc.reference_code),
+            "issue_date": {
+                "displayed": format_vn_date(doc.issue_date),
+                "normalized": doc.issue_date,
+                "present": True,
+            },
+            "issuer.name": gt_field(doc.issuer_name),
+            "issuer.tax_code": gt_field(doc.issuer_tax_code),
+            "issuer.address": gt_field(doc.issuer_address),
+            "recipient.name": gt_field(doc.recipient_name),
+            "recipient.tax_code": gt_field(doc.recipient_tax_code),
+            "recipient.address": gt_field(doc.recipient_address),
+            "totals.total_amount": {
+                "displayed": money(doc.total_amount),
+                "normalized": str(doc.total_amount),
+                "present": True,
+            },
         },
-        "line_items": doc.to_dict()["items"],
+        "line_items": document_data["items"],
         "relationships": {
-            key: doc.to_dict()["metadata"][key]
-            for key in ("scenario_id", "role", "references_document_id", "reference_invoice_number", "reference_series", "scenario_expected", "adjustment_direction", "adjustment_delta_signed")
-            if key in doc.metadata
+            key: document_data["metadata"][key]
+            for key in (
+                "scenario_id",
+                "role",
+                "references_document_id",
+                "reference_invoice_number",
+                "reference_series",
+                "scenario_expected",
+                "adjustment_direction",
+                "adjustment_delta_signed",
+            )
+            if key in document_data["metadata"]
         },
     }
-    (out_dir / "ground_truth.json").write_text(json.dumps(gt, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    (out_dir / "ground_truth.json").write_text(
+        json.dumps(gt, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
 
     artifacts = {}
     for p in sorted(out_dir.rglob("*")):
@@ -341,7 +376,14 @@ def write_extended_bundle(doc: ExtendedDocument, out_dir: Path, seed: int = 42, 
             }
 
     manifest = {
-        "dataset_id": out_dir.parent.parent.name if out_dir.parent.name == "documents" else out_dir.parent.name,
+        "dataset_id": next(
+    (
+        parent.parent.name
+        for parent in out_dir.parents
+        if parent.name == "documents"
+    ),
+    out_dir.parent.name,
+),
         "document_id": doc.document_id,
         "document_type": doc.document_type,
         "generator_version": generator_version,
