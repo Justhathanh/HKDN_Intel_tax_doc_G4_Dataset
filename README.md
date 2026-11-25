@@ -47,17 +47,79 @@ Python 3.11+.
 
 ### 1. Cài đặt môi trường
 
-```bash
-python -m venv .venv
-# Windows
-.venv\\Scripts\\activate
-# macOS/Linux
-source .venv/bin/activate
-pip install -e .
-python -m dataset_generator.cli --count 1 --output datasets/samples
-```
+**Yêu cầu:**
+- Python 3.11 trở lên.
+- Git.
+- Windows, macOS hoặc Linux.
 
-Set `DATASET_FONT_PATH` to a Vietnamese-capable TTF font if the default system font is unavailable (e.g. Arial on Windows or DejaVuSans on Linux).
+**Bước 1: Clone repository**
+
+\`\`\`bash
+git clone https://github.com/Justhathanh/HKDN_Intel_tax_doc_G4_Dataset.git
+cd HKDN_Intel_tax_doc_G4_Dataset
+\`\`\`
+
+**Bước 2: Tạo và kích hoạt virtual environment**
+
+Windows PowerShell:
+
+\`\`\`powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+\`\`\`
+
+macOS/Linux:
+
+\`\`\`bash
+python3 -m venv .venv
+source .venv/bin/activate
+\`\`\`
+
+**Bước 3: Cài đặt dependencies**
+
+Chỉ cài đặt generator và các công cụ development:
+
+\`\`\`bash
+python -m pip install --upgrade pip
+python -m pip install -e ".[dev]"
+\`\`\`
+
+Nếu cần sử dụng OCR bằng PaddleOCR:
+
+\`\`\`bash
+python -m pip install -e ".[ocr,dev]"
+\`\`\`
+
+Lệnh trên cài đặt thêm:
+- PaddleOCR 3.x: nhận diện văn bản.
+- PaddlePaddle 3.x: backend chạy mô hình OCR.
+- OpenCV Headless: xử lý ảnh và tiền xử lý trước OCR.
+- Pytest: chạy kiểm thử tự động.
+
+**Bước 4: Kiểm tra môi trường**
+
+\`\`\`bash
+python -m pip check
+python -m pytest -v
+\`\`\`
+
+Nếu cài OCR, kiểm tra thêm:
+
+\`\`\`bash
+thtax-ocr --help
+\`\`\`
+
+**Lưu ý:**
+- OCR là dependency tùy chọn. Không cần cài nếu chỉ sử dụng chức năng generate dataset.
+- Việc cài PaddlePaddle có thể phụ thuộc hệ điều hành, phiên bản Python và cấu hình CPU/GPU.
+- Không cần cài Tesseract OCR cho pipeline OCR hiện tại.
+- Kích hoạt \`.venv\` trước khi chạy các lệnh của dự án.
+
+Set \`DATASET_FONT_PATH\` to a Vietnamese-capable TTF font if the default system font is unavailable. For example, on Windows:
+
+\`\`\`powershell
+$env:DATASET_FONT_PATH = "C:\Windows\Fonts\arial.ttf"
+\`\`\`
 
 ### 2. Tạo bộ dữ liệu kiểm thử & tự động xuất file nén `.zip`
 
@@ -184,59 +246,104 @@ Generated batches can be selected and deleted in bulk from the **Kho dữ liệu
 
 ## OCR extraction and field-level evaluation
 
-OCR is implemented as an optional module in `generator/src/dataset_generator/ocr/`.
-It uses local Tesseract OCR; no document is uploaded to a cloud service.
+The project provides an optional OCR pipeline implemented in \`generator/src/dataset_generator/ocr/\`, using **PaddleOCR 3.x**.
+
+OCR processing runs locally. Original documents and Ground Truth files are not modified.
 
 ### 1. Install dependencies
 
-Install the Python wrapper:
+Activate the project's virtual environment, then install the OCR dependencies:
 
-```powershell
-pip install -e ".[ocr]"
-```
+\`\`\`powershell
+python -m pip install -e ".[ocr,dev]"
+\`\`\`
 
-Install Tesseract OCR for Windows and include both Vietnamese (`vie`) and English
-(`eng`) language data. The Tesseract executable must be on `PATH`. If it is not,
-set its full path for the current PowerShell session:
+Verify the installation:
 
-```powershell
-$env:TESSERACT_CMD = "C:\Program Files\Tesseract-OCR\tesseract.exe"
-tesseract --version
-tesseract --list-langs
-```
+\`\`\`powershell
+python -m pip check
+thtax-ocr --help
+\`\`\`
 
-The language list must contain `vie` and `eng`.
+No separate Tesseract installation is required.
 
 ### 2. Run OCR on a batch
 
-```powershell
+Process a directory recursively:
+
+\`\`\`powershell
 thtax-ocr --input "datasets/companies/company-a/BATCH-..." --output "ocr_results"
-```
+\`\`\`
 
-Or run the module directly:
+Or run a single PDF/image file:
 
-```powershell
-python -m dataset_generator.ocr.cli --input "datasets/companies/company-a/BATCH-..." --output "ocr_results"
-```
+\`\`\`powershell
+thtax-ocr --input "path/to/invoice.pdf" --output "ocr_results"
+\`\`\`
 
-The directory mode scans PDF files recursively. PDFs with a text layer are extracted
-with PyMuPDF; image-only/scanned pages are rendered at 220 DPI and passed through
-image preprocessing and Tesseract. Use `--force-ocr` to OCR text-layer PDFs too.
-A single PDF or image file can also be supplied as `--input`.
+The module can also be executed directly:
 
-### 3. Outputs and metrics
+\`\`\`powershell
+python -m dataset_generator.ocr.cli --input "path/to/input" --output "ocr_results"
+\`\`\`
 
-The output directory contains one `.txt` and one `.json` per input, plus
-`ocr_evaluation_report.json`. When a sibling `ground_truth.json` exists, scalar
-fields in its `fields` object are evaluated using accent-insensitive normalized
-matching. Reports include Field Accuracy, Document Accuracy, field-level CER/WER,
-per-field PASS/FAIL and mean OCR confidence.
+**Supported input formats:**
+- PDF
+- PNG
+- JPG/JPEG
+- TIFF
+- BMP
 
-**Metric boundary:** CER/WER currently measure the concatenated expected scalar
-fields, not a verbatim full-page transcript. Full-document CER/WER requires a
-page-level transcription in Ground Truth and must not be inferred from field labels.
+**Available options:**
 
-Original PDFs/images, `canonical.json`, `ground_truth.json` and manifests are
-read-only. OCR artifacts are written only to the separate output directory.
-Corrupted PDFs are reported as per-file errors and do not stop processing the rest
-of the batch.
+| Option | Description |
+|---|---|
+| \`--input\` | Input PDF/image file or directory (required) |
+| \`--output\` | Output directory (default: \`ocr_results\`) |
+| \`--dpi\` | PDF rendering resolution (default: 220) |
+| \`--lang\` | PaddleOCR language (default: \`vi\`) |
+| \`--force-ocr\` | Force OCR even when a PDF has a text layer |
+| \`--no-preprocess\` | Disable image preprocessing |
+| \`--no-deskew\` | Disable automatic image deskew |
+
+### 3. Extraction workflow
+
+1. Discover supported PDF and image files.
+2. Extract the native text layer from PDFs when available.
+3. Render scanned PDF pages at the configured DPI.
+4. Apply optional deskew and image preprocessing.
+5. Run PaddleOCR recognition.
+6. Compare extracted fields against the corresponding \`ground_truth.json\`.
+7. Export individual results and an aggregate evaluation report.
+
+PDFs containing a text layer use PyMuPDF native extraction by default. Use \`--force-ocr\` to process these pages through PaddleOCR.
+
+### 4. Outputs and metrics
+
+The output directory contains:
+
+- \`<document>.txt\`: extracted text.
+- \`<document>.json\`: extraction results, page-level diagnostics and evaluation details.
+- \`ocr_evaluation_report.json\`: aggregate evaluation across processed documents.
+
+When a sibling \`ground_truth.json\` exists, the evaluator compares extracted scalar fields against Ground Truth using normalized, accent-insensitive matching.
+
+The report includes:
+- Field Accuracy.
+- Document Accuracy.
+- Field-level CER/WER.
+- Per-field PASS/FAIL results.
+- Mean OCR confidence.
+
+**Metric boundary:** CER/WER currently measure concatenated expected scalar fields, not a verbatim full-page transcription. Full-document CER/WER requires page-level transcription in Ground Truth and must not be inferred from field labels.
+
+Mean OCR confidence represents the OCR engine's recognition confidence. It is not a measure of field correctness.
+
+### 5. Data preservation
+
+- Original PDFs and images are read-only.
+- \`canonical.json\`, \`ground_truth.json\` and manifests are not modified.
+- OCR outputs are written to the separate output directory.
+- Errors in individual documents are recorded without stopping the remaining batch.
+
+Do not commit generated OCR reports or large experimental datasets unless explicitly required.
