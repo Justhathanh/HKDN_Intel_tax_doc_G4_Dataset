@@ -48,6 +48,31 @@ def _field_candidates(value: Any) -> list[str]:
     return result
 
 
+def _best_field_distance(expected: str, actual_words: list[str]) -> tuple[float, float]:
+    """Approximate field CER/WER by aligning each expected field to nearby OCR words."""
+    expected_words = expected.split()
+    if not expected_words:
+        return 0.0, 0.0
+    if not actual_words:
+        return 1.0, 1.0
+
+    min_words = max(1, len(expected_words) - 2)
+    max_words = min(len(actual_words), len(expected_words) + 2)
+    best_cer = 1.0
+    best_wer = 1.0
+
+    for size in range(min_words, max_words + 1):
+        for start in range(0, len(actual_words) - size + 1):
+            window_words = actual_words[start : start + size]
+            window_text = " ".join(window_words)
+            char_rate = _edit_distance(expected, window_text) / max(1, len(expected))
+            word_rate = _edit_distance(expected_words, window_words) / len(expected_words)
+            if (char_rate + word_rate) < (best_cer + best_wer):
+                best_cer, best_wer = char_rate, word_rate
+
+    return best_cer, best_wer
+
+
 def evaluate_fields(ocr_text: str, ground_truth: dict[str, Any]) -> dict[str, Any]:
     """Evaluate GT scalar fields; does not mutate OCR output or Ground Truth."""
     fields = ground_truth.get("fields", {})
@@ -55,8 +80,9 @@ def evaluate_fields(ocr_text: str, ground_truth: dict[str, Any]) -> dict[str, An
         raise ValueError("Ground Truth 'fields' must be a JSON object")
 
     actual = normalize_text(ocr_text)
+    actual_words = actual.split()
     details: dict[str, Any] = {}
-    char_errors = char_count = word_errors = word_count = 0
+    cer_total = wer_total = 0.0
 
     for field_name, expected_value in fields.items():
         candidates = _field_candidates(expected_value)
@@ -67,23 +93,17 @@ def evaluate_fields(ocr_text: str, ground_truth: dict[str, Any]) -> dict[str, An
             f" {candidate} " in f" {actual} "
             for candidate in candidates
         )
-        best_candidate = min(
-            candidates,
-            key=lambda candidate: _edit_distance(
-                candidate, actual
-            ),
-        )
-        char_errors += _edit_distance(best_candidate, actual)
-        char_count += len(best_candidate)
-        expected_words = best_candidate.split()
-        actual_words = actual.split()
-        word_errors += _edit_distance(expected_words, actual_words)
-        word_count += len(expected_words)
+        distances = [_best_field_distance(candidate, actual_words) for candidate in candidates]
+        field_cer, field_wer = min(distances, key=lambda pair: pair[0] + pair[1])
+        cer_total += field_cer
+        wer_total += field_wer
 
         details[field_name] = {
             "expected": expected_value,
             "matched": matched,
             "status": "PASS" if matched else "FAIL",
+            "field_cer": field_cer,
+            "field_wer": field_wer,
         }
 
     evaluated = len(details)
@@ -100,12 +120,12 @@ def evaluate_fields(ocr_text: str, ground_truth: dict[str, Any]) -> dict[str, An
         "failed_fields": evaluated - passed,
         "field_accuracy": field_accuracy,
         "document_accuracy": document_accuracy,
-        "field_cer": char_errors / char_count if char_count else None,
-        "field_wer": word_errors / word_count if word_count else None,
+        "field_cer": cer_total / evaluated if evaluated else None,
+        "field_wer": wer_total / evaluated if evaluated else None,
         "fields": details,
         "metric_note": (
-            "CER/WER are computed over the concatenated expected scalar fields, "
-            "not over a full-page transcript. Full-document CER/WER requires "
+            "Field CER/WER are approximate per-field edit rates aligned to nearby OCR "
+            "tokens. They are not full-page CER/WER. Full-document CER/WER requires "
             "a verbatim page-level transcription in Ground Truth."
         ),
     }
