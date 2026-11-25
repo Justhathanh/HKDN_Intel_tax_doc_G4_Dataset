@@ -180,3 +180,63 @@ See [Dataset Export Contract](docs/DATASET_EXPORT_CONTRACT.md) for the artifact 
 
 
 Generated batches can be selected and deleted in bulk from the **Kho dữ liệu** tab. Deletion removes only selected batch directories and their adjacent Full/Upload ZIP archives. The **Quản lý công ty** tab also supports permanent company deletion, which removes that company profile from `configs/companies.json` and its entire local dataset directory. Both operations require explicit confirmation and validate paths under the configured data root. Generated datasets are excluded from Git by `.gitignore`.
+
+
+## OCR extraction and field-level evaluation
+
+OCR is implemented as an optional module in `generator/src/dataset_generator/ocr/`.
+It uses local Tesseract OCR; no document is uploaded to a cloud service.
+
+### 1. Install dependencies
+
+Install the Python wrapper:
+
+```powershell
+pip install -e ".[ocr]"
+```
+
+Install Tesseract OCR for Windows and include both Vietnamese (`vie`) and English
+(`eng`) language data. The Tesseract executable must be on `PATH`. If it is not,
+set its full path for the current PowerShell session:
+
+```powershell
+$env:TESSERACT_CMD = "C:\Program Files\Tesseract-OCR\tesseract.exe"
+tesseract --version
+tesseract --list-langs
+```
+
+The language list must contain `vie` and `eng`.
+
+### 2. Run OCR on a batch
+
+```powershell
+thtax-ocr --input "datasets/companies/company-a/BATCH-..." --output "ocr_results"
+```
+
+Or run the module directly:
+
+```powershell
+python -m dataset_generator.ocr.cli --input "datasets/companies/company-a/BATCH-..." --output "ocr_results"
+```
+
+The directory mode scans PDF files recursively. PDFs with a text layer are extracted
+with PyMuPDF; image-only/scanned pages are rendered at 220 DPI and passed through
+image preprocessing and Tesseract. Use `--force-ocr` to OCR text-layer PDFs too.
+A single PDF or image file can also be supplied as `--input`.
+
+### 3. Outputs and metrics
+
+The output directory contains one `.txt` and one `.json` per input, plus
+`ocr_evaluation_report.json`. When a sibling `ground_truth.json` exists, scalar
+fields in its `fields` object are evaluated using accent-insensitive normalized
+matching. Reports include Field Accuracy, Document Accuracy, field-level CER/WER,
+per-field PASS/FAIL and mean OCR confidence.
+
+**Metric boundary:** CER/WER currently measure the concatenated expected scalar
+fields, not a verbatim full-page transcript. Full-document CER/WER requires a
+page-level transcription in Ground Truth and must not be inferred from field labels.
+
+Original PDFs/images, `canonical.json`, `ground_truth.json` and manifests are
+read-only. OCR artifacts are written only to the separate output directory.
+Corrupted PDFs are reported as per-file errors and do not stop processing the rest
+of the batch.

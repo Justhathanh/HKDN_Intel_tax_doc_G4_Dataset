@@ -18,9 +18,14 @@ dependencies = [
 dev = [
     "pytest>=8.0",
 ]
+ocr = [
+    "pytesseract>=0.3.13",
+]
+
 [project.scripts]
 thtax-dataset = "dataset_generator.cli:main"
 thtax-dataset-web = "dataset_generator.web_app:main"
+thtax-ocr = "dataset_generator.ocr.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["generator/src"]
