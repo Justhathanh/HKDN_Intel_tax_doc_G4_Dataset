@@ -10,7 +10,9 @@ from typing import Any
 
 
 def normalize_text(value: Any) -> str:
-    text = unicodedata.normalize("NFKD", str(value or ""))
+    # Vietnamese D-stroke is not decomposed by Unicode NFKD.
+    text = str(value or "").replace("Đ", "D").replace("đ", "d")
+    text = unicodedata.normalize("NFKD", text)
     text = "".join(ch for ch in text if not unicodedata.combining(ch))
     text = text.casefold()
     text = re.sub(r"[^a-z0-9]+", " ", text)
