@@ -225,7 +225,7 @@ def render_extended_pdf(doc: ExtendedDocument, path: Path):
     styles = getSampleStyleSheet()
     title_style = ParagraphStyle("ExtTitle", parent=styles["Title"], fontName=bold_font, fontSize=13, leading=17, alignment=1, textColor=colors.HexColor("#1a365d"))
     wm_style = ParagraphStyle("ExtWM", parent=styles["BodyText"], fontName=bold_font, fontSize=8, leading=11, alignment=1, textColor=colors.red)
-    normal = ParagraphStyle("ExtNorm", parent=styles["BodyText"], fontName=reg_font, fontSize=8.5, leading=12)
+    normal = ParagraphStyle("ExtNorm", parent=styles["BodyText"], fontName=reg_font, fontSize=9.5, leading=14)
     cell_l = ParagraphStyle("ExtCellL", parent=normal, fontSize=8, leading=10, alignment=0)
     cell_c = ParagraphStyle("ExtCellC", parent=normal, fontSize=8, leading=10, alignment=1)
     cell_r = ParagraphStyle("ExtCellR", parent=normal, fontSize=8, leading=10, alignment=2)
